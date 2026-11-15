@@ -424,6 +424,211 @@ def ordonnancer_fifo(processus_liste: List[Processus], ressources: Ressources, e
     }
     return lignes_global, lignes_allocations, metriques
 
+def ordonnancer_rr(processus : list[Processus], ressources : Ressources, energie : dict[int : int], quantum=2):
+    #Avant toute chose, nous verifions que les donnees en parametres ne sont pas incoherentes
+    #Verification de l'unicite des identifiants de processus et de processeurs
+    ids_vus = set()
+    for p in processus:
+        if p.id_processus in ids_vus:
+            raise ValueError(f"Doublon detecte! Identifiant \"{p.id_processus}\" avec plusieurs iteration dans les processus offerts!")
+        ids_vus.add(p.id_processus)
+
+    liste_processus_inutilises = [proc for proc in processus]
+
+    nb_processeur = ressources.nb_processeurs
+    ram_totale = ressources.ram_totale
+    energie_par_cpu = ressources.energie_par_proc
+    liste_cpus = ressources.processeurs
+
+    #Meme verification avec les processeurs
+    for cpu in liste_cpus:
+        if cpu in ids_vus:
+            raise ValueError(f"Doublon detecte! Identifiant \"{cpu}\" avec plusieurs iteration dans les processeurs indiques!")
+        ids_vus.add(cpu)
+
+    #Verification de si nous avons le bon nombre de processeurs
+    if len(liste_cpus) != nb_processeur:
+        raise ValueError(f"Incoherence dans le nombre de processeurs indique ({nb_processeur} != {len(liste_cpus)})")
+
+    energies_disponibles = 0
+    energies_consommees = 0
+    taux_util = 0
+
+    dico_duree_processus = {process.id_processus : 0 for process in liste_processus_inutilises}
+    dico_quanta_processeurs = {cpu : 0 for cpu in liste_cpus}
+    
+    file_attente = []
+
+    dico_executions = {}
+    resultats_globaux = []
+    resultats_allocations = []
+    metrique_RR = {}
+    
+    etape_temps = 0
+    temps_max = max([e["instant"] for e in energie]) if energie else 0
+
+    while etape_temps <= temps_max and (file_attente or liste_processus_inutilises or dico_duree_processus):
+        #Avant toute operation, on recupere l'energie disponible a cette etape
+        energie_dispo = 0
+        for e in energie:
+            if e["instant"] == etape_temps:
+                energie_dispo = e["energie_disponible"]
+                break
+        energies_disponibles += energie_dispo
+        
+        #Calcul du nombre max de processeurs qu'on peut alimenter
+        nb_cpus_alimentables = int(energie_dispo // energie_par_cpu)
+        nb_cpus_possibles = min(nb_processeur, nb_cpus_alimentables)
+
+        if nb_cpus_possibles > nb_processeur:
+            nb_cpus_possibles = nb_processeur
+
+        #Recuperation des processus qui rejoignent l'ordonnancement a cette etape
+        nouveaux = [p for p in liste_processus_inutilises if p.date_soumission <= etape_temps]
+        #Si plusieurs arrivent en même temps, triage par ordre de priorite
+        if len(nouveaux) > 1:
+            nouveaux.sort(key=lambda p: p.priorite, reverse=True)
+
+        indice_nouveaux = 0
+        #Rassemblement des nouveaux processus dans la file d'attente
+        #Ils sortent donc de l'etat "inutilise"
+        while indice_nouveaux < len(nouveaux):
+            liste_processus_inutilises.remove(nouveaux[indice_nouveaux])
+            if nouveaux[indice_nouveaux].ram_necessaire > ram_totale:
+                couteux = nouveaux.pop(indice_nouveaux)
+                dico_duree_processus.pop(couteux.id_processus)
+            else:
+                file_attente.append(nouveaux[indice_nouveaux])
+                indice_nouveaux += 1
+
+        if nb_cpus_possibles > 0:
+            #A chaque tour, la ram utilisee sera initialisee a zero
+            ram_utilisee = 0
+            index_cpu = 0
+
+            dico_cpu_process = {}
+            index_dictionnaire = 0
+
+            #Tout d'abord, il faudra parcourir chaque processeur utilisable pour l'avancement des processus dans la file d'attente
+            #Nous prendrons les "premiers" de la file en fonction du nombre de cpu disponibles
+            while index_cpu < len(file_attente) and index_dictionnaire < nb_cpus_possibles:
+
+                if file_attente[index_cpu].date_butoir < etape_temps:
+                    #On supprime les processus qui n'ont pas ete fini avant leur date butoir
+                    dico_duree_processus.pop(file_attente[index_cpu].id_processus)
+                    file_attente.pop(index_cpu)
+                else:
+                    #Si le premier processus utilisable demande trop de RAM, on va s'interesser au suivant dans la file
+                    while index_cpu < len(file_attente) and ram_utilisee + file_attente[index_cpu].ram_necessaire > ram_totale:
+                        #Meme chose dans la deuxieme boucle
+                        if file_attente[index_cpu].date_butoir < etape_temps:
+                            dico_duree_processus.pop(file_attente[index_cpu].id_processus)
+                            file_attente.pop(index_cpu)
+                        else:
+                            index_cpu += 1
+
+                    #Verification supplementaire, au cas ou la boucle precedante ait trop fait monter l'index
+                    if index_cpu < len(file_attente):
+                        #On enregistre quel cpu a manipule quel processus dans le dictionnaire
+                        dico_cpu_process[liste_cpus[index_dictionnaire]] = file_attente[index_cpu]
+                        index_dictionnaire += 1
+
+                        #Nous venons ajouter le coût en RAM du processus utilise
+                        #La somme devrait toujours faire au plus la RAM totale allouee
+                        ram_utilisee += file_attente[index_cpu].ram_necessaire
+
+                        #Le processus employe est donc augmente d'une unite de temps
+                        dico_duree_processus[file_attente[index_cpu].id_processus] += 1
+
+                        energies_consommees += energie_par_cpu
+
+                        #On enregistre la date de debut de traitement, que nous pouvons reconnaitre
+                        #Si la duree du processus est exactement de 1 (ce qui signifie qu'il n'y a eu qu'une seule incrementation)
+                        if dico_duree_processus[file_attente[index_cpu].id_processus] == 1:
+                            dico_executions[file_attente[index_cpu].id_processus] = etape_temps
+
+                        #Incrémentation de l'index
+                        index_cpu += 1
+
+            #Gestion de la completion des processus dans la file d'attente
+            for cpu, process in dico_cpu_process.items():
+                #Quand un processus a fini son execution
+                if process != None and dico_duree_processus[process.id_processus] >= process.duree_execution:
+                    #Le processus termine est enleve de la file d'attente
+                    file_attente.remove(process)
+
+                    #Ajout du processus au resultat renvoye
+                    ligne_resultat_exec = {"processus" : process.id_processus, "soumission" : process.date_soumission,
+                                           "execution" : dico_executions[process.id_processus], "fin" : etape_temps, "RAM" : process.ram_necessaire}
+                    resultats_globaux.append(ligne_resultat_exec)
+
+                    ligne_resultat_alloc = {"processus" : process.id_processus, "debut" : dico_executions[process.id_processus],
+                                            "fin" : etape_temps, "processeur" : cpu}
+                    resultats_allocations.append(ligne_resultat_alloc)
+
+
+                    #Suppression du processus dans le dictionnaire des durees
+                    #A cause du manque d'interet de stocker la valeur pour le reste des iterations
+                    dico_duree_processus.pop(process.id_processus)
+
+                    #Le quantum de ce processeur est reinitialise
+                    dico_quanta_processeurs[cpu] = 0
+
+                #S'il n'y a pas eu de processus complete, le quantum du processeur est incremente de 1
+                else:
+                    dico_quanta_processeurs[cpu] += 1
+
+            #Gestion des quanta des processus
+            for cpu, quant in dico_quanta_processeurs.items():
+                #Lorsqu'un quantum a atteint la valeur du quantum demandee
+                if cpu in dico_cpu_process and quant >= quantum:
+
+                    #Reinitialisation du quantum
+                    dico_quanta_processeurs[cpu] = 0
+
+                    dernier = None
+                    #Nous recherchons quel processus est affecte au cpu ayant le quantum "quant"
+                    #Dans la file d'attente, et le deplaçons a la fin de la file
+                    for p in range(len(file_attente)):
+                        if file_attente[p] == dico_cpu_process[cpu]:
+                            dernier = file_attente.pop(p)
+                            break
+                    if dernier != None:
+                        file_attente.append(dernier)
+
+        #Incrementation de la periode de temps
+        etape_temps += 1
+
+    nb_processus = len(resultats_globaux)
+
+    if nb_processus > 0:
+        somme_temps_attente = sum([ligne["execution"] - ligne["soumission"] for ligne in resultats_globaux])
+        somme_temps_reponse = sum([(ligne["fin"] - ligne["debut"]) + 1 for ligne in resultats_allocations])
+
+        temps_attente_moyen = somme_temps_attente  // nb_processus
+        temps_reponse_moyen = somme_temps_reponse // nb_processus
+    else:
+            temps_attente_moyen = 0
+            temps_reponse_moyen = 0
+
+    makespan = etape_temps - 1
+
+    if energies_disponibles > 0:
+        taux_util = energies_consommees/energies_disponibles
+
+    metrique_RR = {
+        "algorithme" : "Round-Robin",
+        "attente_moyenne" : temps_attente_moyen,
+        "reponse_moyenne" : temps_reponse_moyen,
+        "makespan" : makespan,
+        "energie_consommee_totale" : energies_consommees,
+        "energie_disponible_totale" : energies_disponibles,
+        "taux_utilisation" : taux_util
+    }
+
+
+    return resultats_globaux, resultats_allocations, metrique_RR
+
 
 # =========================================================
 # POINT D'ENTREE
@@ -448,6 +653,9 @@ def executer_depuis_config(chemin_config: str = "config.txt"):
                 l_glob, l_alloc, metriques = ordonnancer_edf(processus, ressources, energie)
             elif algo == "FIFO":
                 l_glob, l_alloc, metriques = ordonnancer_fifo(processus, ressources, energie)
+            elif algo == "RR":
+                quantum = config["quantum"]
+                l_glob, l_alloc, metriques = ordonnancer_rr(processus, ressources, energie, quantum)
             else:
                 print(f"Algorithme {algo} non implémenté.")
                 continue

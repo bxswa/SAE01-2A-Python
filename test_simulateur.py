@@ -8,7 +8,7 @@ from simulateur import (
     Processus, Ressources, ErreurFormat, ErreurLecture, ErreurEcriture,
     lire_config, lire_ressources, lire_processus, lire_energie,
     ecrire_global, ecrire_allocations, ecrire_metriques,
-    ordonnancer_edf, ordonnancer_fifo, executer_depuis_config
+    ordonnancer_edf, ordonnancer_fifo, ordonnancer_rr, executer_depuis_config
 )
 
 
@@ -136,6 +136,243 @@ class TestOrdonnancementFIFO(unittest.TestCase):
         
         self.assertEqual(alloc_p2["date_debut"], 0)
         self.assertEqual(alloc_p1["date_debut"], 2)
+
+    class TestOrdonnancementRR(unittest.TestCase):
+        def test_normal():
+            ressource_test = Ressources(nb_processeurs=2, ram_totale=512, energie_par_proc=50, processeurs=["CPU1", "CPU2"])
+            table_processus = [
+                Processus(id_processus="P1", date_soumission=0, duree_execution=3, ram_necessaire=256, priorite=1, date_butoir=10),
+                Processus(id_processus="P2", date_soumission=0, duree_execution=3, ram_necessaire=256, priorite=1, date_butoir=10),
+                Processus(id_processus="P3", date_soumission=2, duree_execution=5, ram_necessaire=128, priorite=0, date_butoir=12)
+            ]
+            energie_dispo = [{"instant": i, "energie_disponible": 100} for i in range(10)]
+
+            res_glob, res_alloc, metriques = ordonnancer_rr(table_processus, ressource_test, energie_dispo)
+
+            assert res_glob == [
+                                {"processus" : "P1", "soumission" : 0, "execution" : 0, "fin" : 2, "RAM" : 256},
+                                {"processus" : "P2", "soumission" : 0, "execution" : 0, "fin" : 2, "RAM" : 256},
+                                {"processus" : "P3", "soumission" : 2, "execution" : 3, "fin" : 7, "RAM" : 128}
+                            ]
+            
+            assert res_alloc == [
+                                {"processus" : "P1", "debut" : 0, "fin" : 2, "processeur" : "CPU1"},
+                                {"processus" : "P2", "debut" : 0, "fin" : 2, "processeur" : "CPU2"},
+                                {"processus" : "P3", "debut" : 3, "fin" : 7, "processeur" : "CPU1"}
+                            ]
+
+        def test_depasser_date_butoir():
+            ressources = Ressources(nb_processeurs=1, ram_totale=1024, energie_par_proc=10, processeurs=["CPU1"])
+            processus = [
+                Processus(id_processus="P_Presse", date_soumission=0, duree_execution=4, ram_necessaire=256, priorite=1, date_butoir=-1)
+            ]
+            energie = [{"instant": i, "energie_disponible": 20} for i in range(99)]
+
+            res_glob, res_alloc, metriques = ordonnancer_rr(processus, ressources, energie, quantum=2)
+
+            attendu_global = []
+                    
+            attendu_alloc = []
+            
+            attendu_metriques = {
+                "algorithme": "Round-Robin",
+                "attente_moyenne": 0,
+                "reponse_moyenne": 0,
+                "makespan": 0,
+                "energie_consommee_totale": 0,
+                "energie_disponible_totale": 20,
+                "taux_utilisation": 0
+            }
+
+            assert res_glob == attendu_global, f"Mauvais résultat global : {res_glob}"
+            assert res_alloc == attendu_alloc, f"Mauvais résultat allocations : {res_alloc}"
+            assert metriques == attendu_metriques, f"Métriques incorrectes : {metriques}"
+            print("Fin de test_depassement_date_butoir avec succes")
+
+        def test_surcharge_ram():
+            ressources = Ressources(nb_processeurs=2, ram_totale=512, energie_par_proc=10, processeurs=["CPU1", "CPU2"])
+            processus = [
+                Processus(id_processus="P_Lourd", date_soumission=0, duree_execution=3, ram_necessaire=1024, priorite=1, date_butoir=10),
+                Processus(id_processus="P_Normal", date_soumission=0, duree_execution=2, ram_necessaire=256, priorite=1, date_butoir=10)
+            ]
+            energie = [{"instant": i, "energie_disponible": 100} for i in range(5)]
+
+            res_glob, res_alloc, metriques = ordonnancer_rr(processus, ressources, energie, quantum=2)
+
+            attendu_global = [
+                                {"processus" : "P_Normal", "soumission" : 0, "execution" : 0, "fin" : 1, "RAM" : 256}
+                            ]
+                
+            attendu_alloc = [
+                                {"processus" : "P_Normal", "debut" : 0, "fin" : 1, "processeur" : "CPU1"}
+                            ]
+
+            attendu_metriques = {
+                "algorithme": "Round-Robin",
+                "attente_moyenne": 0,
+                "reponse_moyenne": 2,
+                "makespan": 1,
+                "energie_consommee_totale": 20,
+                "energie_disponible_totale": 200,
+                "taux_utilisation": 1 / 10
+            }
+
+            assert res_glob == attendu_global, f"Mauvais résultat global : {res_glob}"
+            assert res_alloc == attendu_alloc, f"Mauvais résultat allocations : {res_alloc}"
+            assert metriques == attendu_metriques, f"Métriques incorrectes : {metriques}"
+            print("Fin test_surcharge_ram...")
+
+
+        def test_panne_energie():
+            ressources = Ressources(nb_processeurs=2, ram_totale=1024, energie_par_proc=99, processeurs=["CPU1", "CPU2"])
+            processus = [
+                Processus(id_processus="P1", date_soumission=0, duree_execution=2, ram_necessaire=256, priorite=1, date_butoir=10)
+            ]
+            energie = [{"instant": i, "energie_disponible": 1} for i in range(12)]
+            
+            res_glob, res_alloc, metriques = ordonnancer_rr(processus, ressources, energie, quantum=2)
+
+            attendu_global = []
+                
+            attendu_alloc = []
+
+            attendu_metriques = {
+                "algorithme": "Round-Robin",
+                "attente_moyenne": 0,
+                "reponse_moyenne": 0,
+                "makespan": 11,
+                "energie_consommee_totale": 0,
+                "energie_disponible_totale": 12,
+                "taux_utilisation": 0
+            }
+
+            assert res_glob == attendu_global, f"Mauvais résultat global : {res_glob}"
+            assert res_alloc == attendu_alloc, f"Mauvais résultat allocations : {res_alloc}"
+            assert metriques == attendu_metriques, f"Métriques incorrectes : {metriques}"
+            print("Fin test_priorites_simulatanees...")
+
+
+        def test_priorites_simultanees():
+            ressources = Ressources(nb_processeurs=1, ram_totale=1024, energie_par_proc=10, processeurs=["CPU1"])
+            processus = [
+                Processus(id_processus="P_Basse", date_soumission=0, duree_execution=1, ram_necessaire=256, priorite=1, date_butoir=10),
+                Processus(id_processus="P_Haute", date_soumission=0, duree_execution=1, ram_necessaire=256, priorite=10, date_butoir=10),
+                Processus(id_processus="P_Moyenne", date_soumission=0, duree_execution=1, ram_necessaire=256, priorite=5, date_butoir=10)
+            ]
+            energie = [{"instant": i, "energie_disponible": 50} for i in range(5)]
+
+            res_glob, res_alloc, metriques = ordonnancer_rr(processus, ressources, energie, quantum=2)
+
+            attendu_global = [
+                                {"processus" : "P_Haute", "soumission" : 0, "execution" : 0, "fin" : 0, "RAM" : 256},
+                                {"processus" : "P_Moyenne", "soumission" : 0, "execution" : 1, "fin" : 1, "RAM" : 256},
+                                {"processus" : "P_Basse", "soumission" : 0, "execution" : 2, "fin" : 2, "RAM" : 256}
+                            ]
+            
+            attendu_alloc = [
+                                {"processus" : "P_Haute", "debut" : 0, "fin" : 0, "processeur" : "CPU1"},
+                                {"processus" : "P_Moyenne", "debut" : 1, "fin" : 1, "processeur" : "CPU1"},
+                                {"processus" : "P_Basse", "debut" : 2, "fin" : 2, "processeur" : "CPU1"}
+                            ]
+
+            attendu_metriques = {
+                "algorithme": "Round-Robin",
+                "attente_moyenne": 1,
+                "reponse_moyenne": 1,
+                "makespan": 2,
+                "energie_consommee_totale": 30,
+                "energie_disponible_totale": 150,
+                "taux_utilisation": 1 / 5
+            }
+
+            assert res_glob == attendu_global, f"Mauvais résultat global : {res_glob}"
+            assert res_alloc == attendu_alloc, f"Mauvais résultat allocations : {res_alloc}"
+            assert metriques == attendu_metriques, f"Métriques incorrectes : {metriques}"
+            print("Fin test_priorites_simulatanees...")
+
+
+        def test_rotation_quantum():
+            ressources = Ressources(nb_processeurs=1, ram_totale=1024, energie_par_proc=10, processeurs=["CPU1"])
+            processus = [
+                Processus(id_processus="P1", date_soumission=0, duree_execution=3, ram_necessaire=256, priorite=1, date_butoir=10),
+                Processus(id_processus="P2", date_soumission=0, duree_execution=3, ram_necessaire=256, priorite=1, date_butoir=10)
+            ]
+            energie = [{"instant": i, "energie_disponible": 50} for i in range(10)]
+
+            res_glob, res_alloc, metriques = ordonnancer_rr(processus, ressources, energie, quantum=2)
+
+            attendu_global = [
+                                {"processus" : "P1", "soumission" : 0, "execution" : 0, "fin" : 4, "RAM" : 256},
+                                {"processus" : "P2", "soumission" : 0, "execution" : 2, "fin" : 5, "RAM" : 256}
+                            ]
+        
+            attendu_alloc = [
+                                {"processus" : "P1", "debut" : 0, "fin" : 4, "processeur" : "CPU1"},
+                                {"processus" : "P2", "debut" : 2, "fin" : 5, "processeur" : "CPU1"}
+                            ]
+
+            attendu_metriques = {
+                "algorithme": "Round-Robin",
+                "attente_moyenne": 1,
+                "reponse_moyenne": 4,
+                "makespan": 5,
+                "energie_consommee_totale": 60,
+                "energie_disponible_totale": 300,
+                "taux_utilisation": 60 / 300
+            }
+
+            assert res_glob == attendu_global, f"Mauvais résultat global : {res_glob}"
+            assert res_alloc == attendu_alloc, f"Mauvais résultat allocations : {res_alloc}"
+            assert metriques == attendu_metriques, f"Métriques incorrectes : {metriques}"
+            print("Fin test_rotation_quantum...")
+
+        def test_plus_de_processeurs_que_de_processus():
+            ressources = Ressources(
+                nb_processeurs=4,
+                ram_totale=2048,
+                energie_par_proc=10,
+                processeurs=["CPU1", "CPU2", "CPU3", "CPU4"]
+            )
+            processus = [
+                Processus(id_processus="P_Seul", date_soumission=0, duree_execution=5, ram_necessaire=256, priorite=1, date_butoir=10)
+            ]
+            energie = [{"instant": i, "energie_disponible": 100} for i in range(8)]
+
+            res_glob, res_alloc, metriques = ordonnancer_rr(processus, ressources, energie, quantum=2)
+
+            attendu_global = [
+                                {"processus" : "P_Seul", "soumission" : 0, "execution" : 0, "fin" : 4, "RAM" : 256}
+                            ]
+            
+            attendu_alloc = [
+                                {"processus" : "P_Seul", "debut" : 0, "fin" : 4, "processeur" : "CPU1"}
+                            ]
+
+            attendu_metriques = {
+                "algorithme": "Round-Robin",
+                "attente_moyenne": 0,
+                "reponse_moyenne": 5,
+                "makespan": 4,
+                "energie_consommee_totale": 50,
+                "energie_disponible_totale": 500,
+                "taux_utilisation": 1 / 10
+            }
+
+            assert res_glob == attendu_global, f"Mauvais résultat global : {res_glob}"
+            assert res_alloc == attendu_alloc, f"Mauvais résultat allocations : {res_alloc}"
+            assert metriques == attendu_metriques, f"Métriques incorrectes : {metriques}"
+            print("Fin test_processeur_processus...")
+
+
+        if __name__ == "__main__":
+            test_depasser_date_butoir()
+            test_surcharge_ram()
+            test_panne_energie()
+            test_priorites_simultanees()
+            test_rotation_quantum()
+            test_plus_de_processeurs_que_de_processus()
+
+            test_normal()
 
 
 class TestLectureEcriture(unittest.TestCase):

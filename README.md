@@ -69,48 +69,47 @@ Voici ce qui se passe à chaque instant `t` :
 | makespan | date de fin du dernier processus |
 | taux d'utilisation | énergie consommée / énergie disponible (sur `[0, makespan[`) |
 
-## Hypothèses
+## Répartition du travail
 
-1. Après le dernier instant d'`energie.csv`, on **recommence au début du fichier** (journée suivante). Sinon, un processus non terminé le soir ne finirait jamais.
-2. Si l'énergie baisse, un processus en cours est **mis en pause**, même en FIFO ou EDF, car le sujet interdit de dépasser l'énergie disponible.
-3. Un processus qui demande **plus que la RAM totale** n'est pas exécuté. Il apparaît avec des dates vides et `ram_utilisee = 0`.
-4. Un processus reprend **sur le même CPU** qu'avant si ce CPU est libre.
+| Membre | Tâches réalisées | Python | Java |
+|---|---|
+| Besma Bezzaz | | | |
+| Lilian Francisco | | | |
+| Julien Faucher | | | |
+| Alexis Sudre-Brito | | | |
 
-## Trace à la main : Test1, FIFO
+### Liste des tâches réalisées 
 
-La configuration est de 2 CPU, 1024 de RAM et 40 d'énergie par CPU.
+**Partie Python**
 
-| t | énergie | CPU allumables | Ce qui se passe |
-|---|---|---|---|
-| 0 à 6 | 0 à 15 | 0 | rien ne tourne ; P1, P2 et P3 arrivent dans la file |
-| 7 | 45 | 1 | P1 prend CPU1 (RAM 512) |
-| 8 | 85 | 2 | P2 (256) tient → CPU2 |
-| 9 à 10 | ≥ 120 | 2 | P3 (1024) ne tient pas à côté de P1 + P2 |
-| 11 | 175 | 2 | P2 a fini (fin 11) ; P3 ne tient toujours pas (512 libres) |
-| 12 à 17 | ≥ 65 | ≥ 1 | P1 a fini (fin 12) ; P3 prend CPU1 et finit à 18 |
+- Lecture et vérification du fichier `config.txt` (`lecture.py`)
+- Lecture et vérification de `ressources.json` (`lecture.py`)
+- Lecture et vérification de `processus.csv` (`lecture.py`)
+- Lecture et vérification de `energie.csv` (`lecture.py`)
+- Exceptions de lecture, de format et d'écriture (`erreurs.py`)
+- Écriture des fichiers CSV de sortie : global, allocations, métriques, énergie (`ecriture.py`)
+- Programme principal en ligne de commande (`main.py`)
+- Moteur de simulation commun aux algorithmes (`simulateur.py`)
+- Politique FIFO (`simulateur.py`)
+- Politique Round Robin avec quantum (`simulateur.py`)
+- Politique EDF (`simulateur.py`)
+- Contrainte de RAM (`simulateur.py`)
+- Contrainte d'énergie verte et mise en pause des processus (`simulateur.py`)
+- Calcul des métriques : temps d'attente, temps de réponse, makespan, énergie, taux d'utilisation (`metriques.py`)
+- Tests unitaires (`tests/test_simulateur.py`)
+- Jeux d'essai `Inputs/Test2` et `Inputs/Test3`
+- Vérification des résultats à la main sur le Test1
+- Rédaction du README
 
-- **Temps d'attente moyen** = (7 + 7 + 10) / 3 = **8,00**
-- **Temps de réponse moyen** = (12 + 10 + 16) / 3 = **12,67**
-- **Makespan** = **18**
-- **Énergie consommée** = 14 × 40 = **560** ; disponible sur [0, 18[ = **1450** ; taux = **0,3862**
+**Partie Java**
 
-Avec **EDF**, P3 tourne de 13 à 17, puis l'énergie tombe à 30 à t = 18. P3 est mis en pause et reprend à t = 31 (le lendemain matin). Il finit à 32 et **rate sa deadline (30)**.
-
-## Résultats
-
-| Test | Algo | Attente moy. | Réponse moy. | Makespan | Taux énergie |
-|---|---|---|---|---|---|
-| Test1 | FIFO | 8,00 | 12,67 | 18 | 0,3862 |
-| Test1 | RR (q=2) | 8,67 | 13,33 | 18 | 0,3862 |
-| Test1 | EDF | 12,67 | 17,33 | 32 | 0,3613 |
-| Test2 | FIFO | 2,50 | 6,50 | 21 | 0,6226 |
-| Test2 | RR (q=3) | 2,50 | 6,50 | 19 | 0,6957 |
-| Test2 | EDF | 2,62 | 6,62 | 22 | 0,6084 |
-| Test3 | FIFO | 0,75 | 3,00 | 7 | 0,5143 |
-| Test3 | RR (q=1) | 0,50 | 2,75 | 6 | 0,6000 |
-| Test3 | EDF | 0,75 | 3,00 | 7 | 0,5143 |
-
-Contenu des jeux d'essai :
-- **Test1** : fichiers fournis par les enseignants.
-- **Test2** : 8 processus, 3 CPU, baisse d'énergie en pleine exécution.
-- **Test3** : arrivées simultanées, processus trop gros pour la RAM, blocage RAM, quantum 1.
+- Maquettes des 5 écrans : configuration, processus, Gantt par processus, Gantt par processeur, comparaison
+- Mise en place du projet Maven / JavaFX (`pom.xml`, `Main`, `App`)
+- Fenêtre principale à onglets (`Principale.fxml`)
+- Classe des constantes et des chemins (`Constantes`, `Chemins`)
+- Modèle de la configuration (`Configuration`, `Algorithme`, `ErreurConfiguration`)
+- Lecture d'un `config.txt` existant (`LecteurConfig`)
+- Écriture du `config.txt` (`EcrivainConfig`)
+- Écran de configuration : vue (`Configuration.fxml`, `style.css`)
+- Écran de configuration : contrôleur (`ConfigurationControleur`)
+- Tests de l'écran de configuration (lecture, écriture, compatibilité avec Python)

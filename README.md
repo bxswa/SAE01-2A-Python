@@ -72,7 +72,7 @@ Voici ce qui se passe à chaque instant `t` :
 ## Répartition du travail
 
 | Membre | Tâches réalisées | Python | Java |
-|---|---|
+|---|---|---|---|
 | Besma Bezzaz | | | |
 | Lilian Francisco | | | |
 | Julien Faucher | | | |

@@ -1,0 +1,5 @@
+id_processus,date_debut,date_fin,id_processeur
+PC,0,2,CPU_A
+PB,0,2,CPU_B
+PA,2,5,CPU_A
+PE,5,7,CPU_A

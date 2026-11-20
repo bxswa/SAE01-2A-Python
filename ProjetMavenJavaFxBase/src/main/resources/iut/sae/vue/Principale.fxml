@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  Fenetre principale : un onglet par ecran.
+  Chaque sous-groupe remplace le Label "a venir" de son onglet par un
+  <fx:include source="XXX.fxml"/> vers sa propre vue.
+-->
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+
+<TabPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+         tabClosingPolicy="UNAVAILABLE">
+   <tabs>
+      <Tab text="Configuration">
+         <content>
+            <fx:include source="Configuration.fxml"/>
+         </content>
+      </Tab>
+      <Tab text="Processus">
+         <content>
+            <Label text="Écran à venir : liste des processus et dates d'exécution." styleClass="a-venir"/>
+         </content>
+      </Tab>
+      <Tab text="Gantt par processus">
+         <content>
+            <Label text="Écran à venir : diagramme de Gantt par processus." styleClass="a-venir"/>
+         </content>
+      </Tab>
+      <Tab text="Gantt par processeur">
+         <content>
+            <Label text="Écran à venir : diagramme de Gantt par processeur et énergie." styleClass="a-venir"/>
+         </content>
+      </Tab>
+      <Tab text="Comparaison">
+         <content>
+            <Label text="Écran à venir : métriques et graphiques de comparaison." styleClass="a-venir"/>
+         </content>
+      </Tab>
+   </tabs>
+</TabPane>

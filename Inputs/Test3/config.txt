@@ -1,0 +1,19 @@
+# Test3 : cas limites
+#  - PA, PB, PC soumis en meme temps -> departage par priorite (FIFO)
+#  - PD demande plus que la RAM totale -> rejete
+#  - PE (700) ne tient pas a cote d'un processus de 400 -> blocage RAM
+#  - quantum = 1 : Round Robin tres fin
+fichier_processus = processus.csv
+fichier_ressources = ressources.json
+energie = energie.csv
+algorithmes = FIFO,RR,EDF
+
+fichier_global_FIFO = resultats_fifo_global.csv
+fichier_allocations_FIFO = resultats_fifo_allocations.csv
+fichier_global_RoundRobin = resultats_roundrobin_global.csv
+fichier_allocations_RoundRobin = resultats_roundrobin_allocations.csv
+fichier_global_EDF = resultats_EDF_global.csv
+fichier_allocations_EDF = resultats_EDF_allocations.csv
+
+fichier_metriques = metriques.csv
+quantum = 1

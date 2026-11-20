@@ -1,0 +1,4 @@
+algorithme,temps_attente_moyen,temps_reponse_moyen,makespan,energie_consommee_totale,energie_disponible_totale,taux_utilisation
+EDF,12.67,17.33,32,560,1550,0.3613
+FIFO,8.0,12.67,18,560,1450,0.3862
+RR,8.67,13.33,18,560,1450,0.3862

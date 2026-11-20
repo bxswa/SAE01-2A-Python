@@ -1,0 +1,6 @@
+id_processus,date_soumission,duree_execution,ram_necessaire,priorite,date_butoir
+PA,0,3,400,1,20
+PB,0,2,400,9,5
+PC,0,2,400,5,4
+PD,1,1,1500,10,10
+PE,4,2,700,2,12

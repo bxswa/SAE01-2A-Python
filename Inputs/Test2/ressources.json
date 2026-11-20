@@ -1,0 +1,6 @@
+{
+  "nbProcesseurs": 3,
+  "ramTotale": 2048,
+  "energieParProc": 50,
+  "processeur": ["CPU1", "CPU2", "CPU3"]
+}

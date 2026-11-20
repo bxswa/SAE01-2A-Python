@@ -1,0 +1,6 @@
+id_processus,date_soumission,date_debut,date_fin,ram_demandee,ram_utilisee
+PA,0,2,5,400,400
+PB,0,0,2,400,400
+PC,0,0,2,400,400
+PD,1,,,1500,0
+PE,4,5,7,700,700

@@ -1,0 +1,66 @@
+/* Feuille de style commune a tous les ecrans (couleurs des maquettes). */
+
+.root {
+    -fx-font-size: 13px;
+}
+
+.ecran {
+    -fx-background-color: #F3F4F6;
+}
+
+.defilement, .defilement > .viewport {
+    -fx-background-color: transparent;
+}
+
+/* Bloc blanc arrondi qui regroupe un ensemble de champs */
+.section {
+    -fx-background-color: white;
+    -fx-border-color: #D1D5DB;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 16;
+}
+
+.titre-section {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+}
+
+.entete-colonne {
+    -fx-font-weight: bold;
+    -fx-text-fill: #374151;
+}
+
+.aide {
+    -fx-text-fill: #4B5563;
+    -fx-font-size: 12px;
+}
+
+.apercu {
+    -fx-font-family: "Consolas", "Monospaced";
+    -fx-font-size: 12px;
+}
+
+.bouton-principal {
+    -fx-background-color: #1D4ED8;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-padding: 10 16;
+}
+
+.message {
+    -fx-font-size: 13px;
+}
+
+.message-ok {
+    -fx-text-fill: #065F46;
+}
+
+.message-erreur {
+    -fx-text-fill: #B91C1C;
+}
+
+.a-venir {
+    -fx-text-fill: #4B5563;
+    -fx-padding: 24;
+}

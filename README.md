@@ -71,12 +71,86 @@ Voici ce qui se passe à chaque instant `t` :
 
 ## Répartition du travail
 
-| Membre | Tâches réalisées | Python | Java |
-|---|---|---|---|
-| Besma Bezzaz | | | |
-| Lilian Francisco | | | |
-| Julien Faucher | | | |
-| Alexis Sudre-Brito | | | |
+<table>
+  <tr>
+    <th>Membre</th>
+    <th>Tâches réalisées</th>
+    <th>Python</th>
+    <th>Java</th>
+  </tr>
+  <tr>
+    <td><b>Besma Bezzaz</b></td>
+    <td></td>
+    <td>
+      <p><b>Sous-groupe : lecture / écriture</b></p>
+      <ul>
+        <li>Lecture et vérification du fichier <code>config.txt</code> (<code>lecture.py</code>)</li>
+        <li>Lecture et vérification de <code>ressources.json</code> (<code>lecture.py</code>)</li>
+        <li>Lecture et vérification de <code>processus.csv</code> (<code>lecture.py</code>)</li>
+        <li>Lecture et vérification de <code>energie.csv</code> (<code>lecture.py</code>)</li>
+        <li>Exceptions de lecture, de format et d'écriture (<code>erreurs.py</code>)</li>
+        <li>Écriture des fichiers CSV de sortie : global, allocations, métriques, énergie (<code>ecriture.py</code>)</li>
+      </ul>
+    </td>
+    <td>
+      <p><b>Sous-groupe : configuration / lancement</b></p>
+      <ul>
+        <li>Mise en place du projet Maven / JavaFX (<code>pom.xml</code>, <code>Main</code>, <code>App</code>)</li>
+        <li>Fenêtre principale à onglets (<code>Principale.fxml</code>)</li>
+        <li>Classe des constantes et des chemins (<code>Constantes</code>, <code>Chemins</code>)</li>
+        <li>Modèle de la configuration (<code>Configuration</code>, <code>Algorithme</code>, <code>ErreurConfiguration</code>)</li>
+        <li>Lecture d'un <code>config.txt</code> existant (<code>LecteurConfig</code>)</li>
+        <li>Écriture du <code>config.txt</code> (<code>EcrivainConfig</code>)</li>
+        <li>Écran de configuration : vue (<code>Configuration.fxml</code>, <code>style.css</code>)</li>
+        <li>Écran de configuration : contrôleur (<code>ConfigurationControleur</code>)</li>
+        <li>Tests de l'écran de configuration (lecture, écriture, compatibilité avec Python)</li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <td><b>Lilian Francisco</b></td>
+    <td></td>
+    <td>
+      <p><b>Sous-groupe : politique EDF</b></p>
+      <ul>
+        <li>Politique EDF : tri de la file par date butoir puis par priorité, non préemptive (<code>simulateur.py</code>)</li>
+        <li>Tests de la politique EDF</li>
+      </ul>
+    </td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><b>Julien Faucher</b></td>
+    <td></td>
+    <td>
+      <p><b>Sous-groupe : politique FIFO</b></p>
+      <ul>
+        <li>Politique FIFO : ordre d'arrivée, départage par priorité en cas d'arrivée simultanée (<code>simulateur.py</code>)</li>
+        <li>Tests de la politique FIFO</li>
+      </ul>
+    </td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><b>Alexis Sudre-Brito</b></td>
+    <td></td>
+    <td>
+      <p><b>Sous-groupe : moteur de simulation, Round Robin, métriques et programme principal</b></p>
+      <ul>
+        <li>Moteur de simulation commun aux algorithmes (<code>simulateur.py</code>)</li>
+        <li>Politique Round Robin avec quantum (<code>simulateur.py</code>)</li>
+        <li>Contrainte de RAM (<code>simulateur.py</code>)</li>
+        <li>Contrainte d'énergie verte et mise en pause des processus (<code>simulateur.py</code>)</li>
+        <li>Calcul des métriques : temps d'attente, temps de réponse, makespan, énergie, taux d'utilisation (<code>metriques.py</code>)</li>
+        <li>Programme principal en ligne de commande (<code>main.py</code>)</li>
+        <li>Tests unitaires (<code>tests/test_simulateur.py</code>)</li>
+        <li>Jeux d'essai <code>Inputs/Test2</code> et <code>Inputs/Test3</code></li>
+        <li>Vérification des résultats à la main sur le Test1</li>
+      </ul>
+    </td>
+    <td></td>
+  </tr>
+</table>
 
 ### Liste des tâches réalisées 
 

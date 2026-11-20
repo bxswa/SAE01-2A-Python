@@ -95,6 +95,7 @@ Voici ce qui se passe à chaque instant `t` :
     <td>
       <p><b>Sous-groupe : configuration / lancement</b></p>
       <ul>
+        <li>Design des interfaces (maquettes des écrans)</li>
         <li>Mise en place du projet Maven / JavaFX (<code>pom.xml</code>, <code>Main</code>, <code>App</code>)</li>
         <li>Fenêtre principale à onglets (<code>Principale.fxml</code>)</li>
         <li>Classe des constantes et des chemins (<code>Constantes</code>, <code>Chemins</code>)</li>
@@ -117,7 +118,11 @@ Voici ce qui se passe à chaque instant `t` :
         <li>Tests de la politique EDF</li>
       </ul>
     </td>
-    <td></td>
+    <td>
+      <ul>
+        <li>Design des interfaces (maquettes des écrans)</li>
+      </ul>
+    </td>
   </tr>
   <tr>
     <td><b>Julien Faucher</b></td>
@@ -129,7 +134,11 @@ Voici ce qui se passe à chaque instant `t` :
         <li>Tests de la politique FIFO</li>
       </ul>
     </td>
-    <td></td>
+    <td>
+      <ul>
+        <li>Design des interfaces (maquettes des écrans)</li>
+      </ul>
+    </td>
   </tr>
   <tr>
     <td><b>Alexis Sudre-Brito</b></td>
@@ -148,7 +157,11 @@ Voici ce qui se passe à chaque instant `t` :
         <li>Vérification des résultats à la main sur le Test1</li>
       </ul>
     </td>
-    <td></td>
+    <td>
+      <ul>
+        <li>Design des interfaces (maquettes des écrans)</li>
+      </ul>
+    </td>
   </tr>
 </table>
 

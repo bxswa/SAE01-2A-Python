@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  Onglet "Processus" : liste des processus, dates de soumission, de debut
+  et de fin pour l'algorithme choisi.
+  Controleur : iut.sae.controleur.ProcessusControleur
+-->
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.Priority?>
+
+<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="iut.sae.controleur.ProcessusControleur"
+      spacing="12" styleClass="ecran">
+   <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
+
+   <VBox spacing="10" styleClass="section" VBox.vgrow="ALWAYS">
+      <Label text="Liste des processus" styleClass="titre-section"/>
+
+      <HBox spacing="10" alignment="CENTER_LEFT">
+         <Label text="Algorithme :"/>
+         <ComboBox fx:id="cbAlgorithme" prefWidth="180"/>
+         <Label text="Rechercher :"/>
+         <TextField fx:id="tfRecherche" promptText="ex : P3" prefWidth="140"/>
+      </HBox>
+
+      <Label fx:id="lblResume" styleClass="aide"/>
+
+      <TableView fx:id="tableProcessus" VBox.vgrow="ALWAYS">
+         <columns>
+            <TableColumn fx:id="colId" text="Processus" prefWidth="90"/>
+            <TableColumn fx:id="colSoumission" text="Soumission" prefWidth="90"/>
+            <TableColumn fx:id="colDuree" text="Durée" prefWidth="70"/>
+            <TableColumn fx:id="colRam" text="RAM" prefWidth="70"/>
+            <TableColumn fx:id="colPriorite" text="Priorité" prefWidth="70"/>
+            <TableColumn fx:id="colButoir" text="Date butoir" prefWidth="90"/>
+            <TableColumn fx:id="colDebut" text="Début" prefWidth="70"/>
+            <TableColumn fx:id="colFin" text="Fin" prefWidth="70"/>
+            <TableColumn fx:id="colAttente" text="Attente" prefWidth="75"/>
+            <TableColumn fx:id="colReponse" text="Réponse" prefWidth="80"/>
+            <TableColumn fx:id="colStatut" text="Statut" prefWidth="120"/>
+         </columns>
+      </TableView>
+
+      <Label styleClass="aide"
+             text="Dates en unités de temps ; la date de fin est exclue. Attente = fin − soumission − durée ; réponse = fin − soumission. Cliquez sur un en-tête pour trier."/>
+   </VBox>
+</VBox>

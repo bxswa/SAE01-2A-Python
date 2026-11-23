@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  Ecran de configuration : creation / mise a jour du fichier config.txt.
+  Ecran de configuration : creation / mise a jour du fichier config.txt
+  et lancement de la simulation Python.
   Controleur : iut.sae.controleur.ConfigurationControleur
 -->
 
@@ -9,6 +10,7 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressIndicator?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Spinner?>
 <?import javafx.scene.control.TextArea?>
@@ -111,8 +113,13 @@
             <Button text="Ouvrir un config…" onAction="#ouvrirConfig" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
             <Button text="Valeurs par défaut" onAction="#reinitialiser" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
          </HBox>
-         <Button text="Enregistrer config.txt…" onAction="#enregistrerConfig" defaultButton="true"
-                 maxWidth="Infinity" styleClass="bouton-principal"/>
+         <Button text="Enregistrer sous…" onAction="#enregistrerConfig" maxWidth="Infinity"/>
+         <!-- Etape 3 : ecrit le config.txt en cours puis lance Python dans un thread separe -->
+         <HBox spacing="8" alignment="CENTER_LEFT">
+            <Button fx:id="btnLancer" text="Enregistrer et lancer la simulation" onAction="#lancerSimulation"
+                    defaultButton="true" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="bouton-principal"/>
+            <ProgressIndicator fx:id="piCalcul" visible="false" prefWidth="28" prefHeight="28"/>
+         </HBox>
       </VBox>
    </right>
 

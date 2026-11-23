@@ -10,13 +10,20 @@ import java.util.Map;
 import iut.sae.modele.Algorithme;
 import iut.sae.modele.Configuration;
 import iut.sae.modele.ErreurConfiguration;
+import iut.sae.modele.EtatApplication;
+import iut.sae.modele.ResultatExecution;
+import iut.sae.modele.ResultatsSimulation;
 import iut.sae.service.EcrivainConfig;
 import iut.sae.service.LecteurConfig;
+import iut.sae.service.LecteurResultats;
+import iut.sae.service.PythonService;
 import iut.sae.util.Chemins;
 import iut.sae.util.Constantes;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.TextArea;
@@ -31,8 +38,13 @@ import javafx.stage.Window;
  * fichiers d'entree, des algorithmes, du quantum et des noms des fichiers
  * de sortie. Un apercu du fichier est mis a jour a chaque modification.</p>
  *
- * <p>Le controleur ne lit et n'ecrit pas lui-meme le fichier : il
- * delegue a {@link LecteurConfig} et {@link EcrivainConfig}.</p>
+ * <p>Le bouton "Enregistrer et lancer la simulation" ecrit le config.txt,
+ * lance Python dans un thread separe ({@link PythonService}), puis lit les
+ * fichiers de resultats ({@link LecteurResultats}) et les range dans
+ * {@link EtatApplication} pour les autres ecrans.</p>
+ *
+ * <p>Le controleur ne lit et n'ecrit pas lui-meme les fichiers : il
+ * delegue aux classes du paquetage service.</p>
  */
 public class ConfigurationControleur {
 
@@ -60,6 +72,8 @@ public class ConfigurationControleur {
     @FXML private Label lblFichierConfig;
     @FXML private TextArea taApercu;
     @FXML private Label lblMessage;
+    @FXML private Button btnLancer;
+    @FXML private ProgressIndicator piCalcul;
 
     // ------------------------------------------------------------------
     // Donnees du controleur
@@ -79,6 +93,12 @@ public class ConfigurationControleur {
 
     /** Ecrit les fichiers config.txt. */
     private final EcrivainConfig ecrivain = new EcrivainConfig();
+
+    /** Lance le programme Python. */
+    private final PythonService python = new PythonService();
+
+    /** Lit les fichiers de resultats ecrits par Python. */
+    private final LecteurResultats lecteurResultats = new LecteurResultats();
 
     /** Fichier config.txt en cours de modification. */
     private Path fichierConfig;
@@ -158,6 +178,71 @@ public class ConfigurationControleur {
             afficherMessage("Configuration enregistree dans " + fichier.getAbsolutePath(), false);
         } catch (IOException e) {
             afficherMessage("Ecriture impossible : " + e.getMessage(), true);
+        }
+    }
+
+    /**
+     * Bouton "Enregistrer et lancer la simulation".
+     *
+     * <p>Etapes : verifier le formulaire, ecrire le config.txt en cours,
+     * puis lancer Python dans un thread separe. Pendant le calcul, le
+     * bouton est desactive et un indicateur tourne ; la fenetre reste
+     * utilisable. A la fin, {@link #simulationTerminee} est appelee dans le
+     * thread JavaFX.</p>
+     */
+    @FXML
+    private void lancerSimulation() {
+        Configuration config = lireFormulaire();
+        List<String> erreurs = config.verifier();
+        if (!erreurs.isEmpty()) {
+            afficherMessage(String.join("\n", erreurs), true);
+            return;
+        }
+        Path fichier = fichierConfig.toAbsolutePath();
+        try {
+            if (!estDejaEnregistree(config, fichier)) {
+                ecrivain.ecrire(config, fichier);
+            }
+        } catch (IOException e) {
+            afficherMessage("Ecriture de " + fichier + " impossible : " + e.getMessage(), true);
+            return;
+        }
+        mettreAJourApercu();
+        Path dossierSortie = Chemins.dossierSortie(fichier);
+
+        afficherCalculEnCours(true);
+        afficherMessage("Simulation en cours… (" + config.getAlgorithmes().size()
+                + " algorithme(s), config : " + fichier.getFileName() + ")", false);
+        python.lancer(fichier, dossierSortie,
+                resultat -> simulationTerminee(resultat, config, dossierSortie));
+    }
+
+    /**
+     * Appelee dans le thread JavaFX quand Python est termine : lit les
+     * resultats et previent les autres ecrans, ou affiche l'erreur.
+     *
+     * @param execution     le resultat de l'execution de Python
+     * @param config        la configuration simulee
+     * @param dossierSortie le dossier des resultats
+     */
+    private void simulationTerminee(ResultatExecution execution, Configuration config,
+                                    Path dossierSortie) {
+        afficherCalculEnCours(false);
+        if (!execution.estReussie()) {
+            String code = execution.getCodeRetour() == ResultatExecution.CODE_LANCEMENT_IMPOSSIBLE
+                    ? "" : " (code retour " + execution.getCodeRetour() + ")";
+            afficherMessage("La simulation a echoue" + code + " :\n" + execution.getSortie(), true);
+            return;
+        }
+        try {
+            ResultatsSimulation resultats = lecteurResultats.lire(config, dossierSortie);
+            EtatApplication.setResultats(resultats);
+            afficherMessage("Simulation terminee : " + resultats.getAlgorithmes().size()
+                    + " algorithme(s), " + resultats.getProcessus().size()
+                    + " processus. Resultats dans " + dossierSortie, false);
+        } catch (IOException e) {
+            afficherMessage("Python a fini, mais les resultats sont illisibles : "
+                    + e.getMessage(), true);
         }
     }
 
@@ -252,6 +337,40 @@ public class ConfigurationControleur {
     // ------------------------------------------------------------------
     // Outils
     // ------------------------------------------------------------------
+
+    /**
+     * Indique si le fichier contient deja exactement cette configuration.
+     * Dans ce cas on ne le reecrit pas : un config.txt fourni (avec ses
+     * commentaires) reste intact tant qu'on ne modifie rien.
+     *
+     * @param config  la configuration saisie
+     * @param fichier le fichier config.txt
+     * @return true si le fichier existe et contient les memes valeurs
+     */
+    private boolean estDejaEnregistree(Configuration config, Path fichier) {
+        if (!fichier.toFile().isFile()) {
+            return false;
+        }
+        Path dossier = fichier.getParent();
+        try {
+            String actuel = ecrivain.genererTexte(lecteur.lire(fichier), dossier);
+            return actuel.equals(ecrivain.genererTexte(config, dossier));
+        } catch (IOException | ErreurConfiguration e) {
+            // Fichier illisible : on le remplace
+            return false;
+        }
+    }
+
+    /**
+     * Montre ou cache l'indicateur de calcul et bloque le bouton de
+     * lancement pendant que Python tourne (pas deux simulations a la fois).
+     *
+     * @param enCours true pendant le calcul
+     */
+    private void afficherCalculEnCours(boolean enCours) {
+        btnLancer.setDisable(enCours);
+        piCalcul.setVisible(enCours);
+    }
 
     /** Range les cases et les champs dans des tables indexees par algorithme. */
     private void associerComposantsAuxAlgorithmes() {

@@ -118,6 +118,104 @@ public final class Constantes {
     public static final String EXTENSION_CSV = ".csv";
 
     // ------------------------------------------------------------------
+    // Lancement du programme Python
+    // ------------------------------------------------------------------
+
+    /** Dossier (a cote de Inputs) qui contient le code Python. */
+    public static final String DOSSIER_CODE = "Code";
+
+    /** Programme principal Python. */
+    public static final String SCRIPT_PYTHON = "main.py";
+
+    /** Commandes essayees, dans l'ordre, pour lancer Python sous Windows. */
+    public static final String[] COMMANDES_PYTHON_WINDOWS = {"python", "py"};
+
+    /** Commandes essayees, dans l'ordre, pour lancer Python sous Linux / macOS. */
+    public static final String[] COMMANDES_PYTHON_AUTRES = {"python3", "python"};
+
+    /** Nom du thread qui attend la fin de Python. */
+    public static final String NOM_THREAD_PYTHON = "thread-python";
+
+    // ------------------------------------------------------------------
+    // Colonnes des fichiers CSV (doivent correspondre a ecriture.py)
+    // ------------------------------------------------------------------
+
+    /** Separateur des fichiers CSV. */
+    public static final String SEPARATEUR_CSV = ",";
+
+    /** Colonne : identifiant du processus. */
+    public static final String COL_ID_PROCESSUS = "id_processus";
+
+    /** Colonne : date de soumission. */
+    public static final String COL_DATE_SOUMISSION = "date_soumission";
+
+    /** Colonne : duree d'execution (processus.csv). */
+    public static final String COL_DUREE_EXECUTION = "duree_execution";
+
+    /** Colonne : RAM necessaire (processus.csv). */
+    public static final String COL_RAM_NECESSAIRE = "ram_necessaire";
+
+    /** Colonne : priorite (processus.csv). */
+    public static final String COL_PRIORITE = "priorite";
+
+    /** Colonne : date butoir (processus.csv). */
+    public static final String COL_DATE_BUTOIR = "date_butoir";
+
+    /** Colonne : date de debut. */
+    public static final String COL_DATE_DEBUT = "date_debut";
+
+    /** Colonne : date de fin (exclue). */
+    public static final String COL_DATE_FIN = "date_fin";
+
+    /** Colonne : RAM demandee (fichier global). */
+    public static final String COL_RAM_DEMANDEE = "ram_demandee";
+
+    /** Colonne : RAM utilisee (fichier global). */
+    public static final String COL_RAM_UTILISEE = "ram_utilisee";
+
+    /** Colonne : identifiant du processeur (fichier des allocations). */
+    public static final String COL_ID_PROCESSEUR = "id_processeur";
+
+    /** Colonne : instant (fichier d'energie). */
+    public static final String COL_INSTANT = "instant";
+
+    /** Colonne : energie disponible (fichier d'energie). */
+    public static final String COL_ENERGIE_DISPONIBLE = "energie_disponible";
+
+    /** Colonne : energie consommee (fichier d'energie). */
+    public static final String COL_ENERGIE_CONSOMMEE = "energie_consommee";
+
+    /** Colonne : nombre de processeurs actifs (fichier d'energie). */
+    public static final String COL_NB_CPU_ACTIFS = "nb_cpu_actifs";
+
+    /** Colonne : algorithme (fichier des metriques). */
+    public static final String COL_ALGORITHME = "algorithme";
+
+    /** Colonne : temps d'attente moyen. */
+    public static final String COL_ATTENTE_MOYENNE = "temps_attente_moyen";
+
+    /** Colonne : temps de reponse moyen. */
+    public static final String COL_REPONSE_MOYENNE = "temps_reponse_moyen";
+
+    /** Colonne : makespan. */
+    public static final String COL_MAKESPAN = "makespan";
+
+    /** Colonne : energie consommee totale. */
+    public static final String COL_ENERGIE_CONSOMMEE_TOTALE = "energie_consommee_totale";
+
+    /** Colonne : energie disponible totale. */
+    public static final String COL_ENERGIE_DISPONIBLE_TOTALE = "energie_disponible_totale";
+
+    /** Colonne : taux d'utilisation de l'energie. */
+    public static final String COL_TAUX_UTILISATION = "taux_utilisation";
+
+    /** Mot remplace dans le nom du fichier global pour obtenir le fichier d'energie. */
+    public static final String MOT_GLOBAL = "global";
+
+    /** Mot qui le remplace (resultats_fifo_global.csv -> resultats_fifo_energie.csv). */
+    public static final String MOT_ENERGIE = "energie";
+
+    // ------------------------------------------------------------------
     // Styles des messages
     // ------------------------------------------------------------------
 

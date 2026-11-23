@@ -82,6 +82,22 @@ CLE_ALLOC = {
     "RR":   "fichier_allocations_RoundRobin",
     "EDF":  "fichier_allocations_EDF",
 }
+# Fichier des metriques d'energie (energie disponible / consommee a chaque
+# instant). Cle facultative : si elle est absente, le nom est deduit du
+# fichier global (voir nom_fichier_energie).
+CLE_ENERGIE = {
+    "FIFO": "fichier_metriques_energie_FIFO",
+    "RR":   "fichier_metriques_energie_RoundRobin",
+    "EDF":  "fichier_metriques_energie_EDF",
+}
+
+
+def nom_fichier_energie(fichier_global):
+    """Nom par defaut du fichier d'energie d'un algorithme :
+    resultats_fifo_global.csv -> resultats_fifo_energie.csv"""
+    if "global" in fichier_global:
+        return fichier_global.replace("global", "energie")
+    return fichier_global.replace(".csv", "") + "_energie.csv"
 
 
 def lire_config(chemin):
@@ -96,7 +112,7 @@ def lire_config(chemin):
             "quantum":            int ou None,
             "fichier_metriques":  str,
             "sorties": {
-                "FIFO": {"global": str, "allocations": str},
+                "FIFO": {"global": str, "allocations": str, "energie": str},
                 ...
             }
         }
@@ -171,6 +187,8 @@ def lire_config(chemin):
         sorties[algo] = {
             "global": brut[cle_g],
             "allocations": brut[cle_a],
+            # Facultatif (les anciens config.txt ne l'ont pas)
+            "energie": brut.get(CLE_ENERGIE[algo]) or nom_fichier_energie(brut[cle_g]),
         }
 
     # Fichier d'energie : le config fourni utilise la cle "energie",
@@ -391,4 +409,4 @@ def lire_energie(chemin):
     if not energie:
         raise ErreurFormat("%s : aucune donnee d'energie" % chemin)
 
-    return energie
+    return energie

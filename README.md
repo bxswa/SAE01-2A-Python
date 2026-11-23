@@ -60,7 +60,7 @@ Voici ce qui se passe à chaque instant `t` :
 - **global** : `id_processus, date_soumission, date_debut, date_fin, ram_demandee, ram_utilisee`
 - **allocations** : `id_processus, date_debut, date_fin, id_processeur`. `date_fin` est exclue : `P1,7,12,CPU1` veut dire que P1 tourne aux instants 7 à 11. Un processus a plusieurs lignes s'il a été interrompu (quantum RR ou manque d'énergie).
 - **métriques** : `algorithme, temps_attente_moyen, temps_reponse_moyen, makespan, energie_consommee_totale, energie_disponible_totale, taux_utilisation`
-- **énergie** (bonus pour le Java) : `instant, energie_disponible, energie_consommee, nb_cpu_actifs`
+- **métriques d'énergie** (un fichier par algorithme) : `instant, energie_disponible, energie_consommee, nb_cpu_actifs`. Le nom se choisit dans `config.txt` avec les clés `fichier_metriques_energie_FIFO`, `fichier_metriques_energie_RoundRobin` et `fichier_metriques_energie_EDF`. Ces clés sont facultatives : sans elles, le nom est déduit du fichier global (`resultats_fifo_global.csv` → `resultats_fifo_energie.csv`).
 
 | Métrique | Calcul |
 |---|---|

@@ -94,6 +94,10 @@ public class LecteurConfig {
      * Recupere les noms des fichiers de sortie presents dans le fichier.
      * Les autres gardent leur nom par defaut.
      *
+     * <p>La cle du fichier des metriques d'energie est facultative (les
+     * anciens config.txt ne l'ont pas) : si elle manque, on prend le nom
+     * que Python utilise dans ce cas, deduit du fichier global.</p>
+     *
      * @param valeurs la table cle vers valeur
      * @param config  la configuration a remplir
      */
@@ -104,6 +108,11 @@ public class LecteurConfig {
             }
             if (valeurs.containsKey(a.getCleAllocations())) {
                 config.setFichierAllocations(a, valeurs.get(a.getCleAllocations()));
+            }
+            if (valeurs.containsKey(a.getCleEnergie())) {
+                config.setFichierMetriquesEnergie(a, valeurs.get(a.getCleEnergie()));
+            } else {
+                config.setFichierMetriquesEnergie(a, Chemins.fichierEnergie(config.getFichierGlobal(a)));
             }
         }
     }

@@ -38,7 +38,7 @@ import javafx.stage.Window;
  * fichiers d'entree, des algorithmes, du quantum et des noms des fichiers
  * de sortie. Un apercu du fichier est mis a jour a chaque modification.</p>
  *
- * <p>Le bouton "Enregistrer et lancer la simulation" ecrit le config.txt,
+ * <p>Le bouton "Enregistrer et lancer" ecrit le config.txt,
  * lance Python dans un thread separe ({@link PythonService}), puis lit les
  * fichiers de resultats ({@link LecteurResultats}) et les range dans
  * {@link EtatApplication} pour les autres ecrans.</p>
@@ -67,6 +67,9 @@ public class ConfigurationControleur {
     @FXML private TextField tfAllocationsRoundRobin;
     @FXML private TextField tfGlobalEdf;
     @FXML private TextField tfAllocationsEdf;
+    @FXML private TextField tfEnergieFifo;
+    @FXML private TextField tfEnergieRoundRobin;
+    @FXML private TextField tfEnergieEdf;
     @FXML private TextField tfMetriques;
 
     @FXML private Label lblFichierConfig;
@@ -87,6 +90,9 @@ public class ConfigurationControleur {
 
     /** Champ du fichier des allocations de chaque algorithme. */
     private final Map<Algorithme, TextField> champsAllocations = new EnumMap<>(Algorithme.class);
+
+    /** Champ du fichier des metriques d'energie de chaque algorithme. */
+    private final Map<Algorithme, TextField> champsEnergie = new EnumMap<>(Algorithme.class);
 
     /** Lit les fichiers config.txt. */
     private final LecteurConfig lecteur = new LecteurConfig();
@@ -182,7 +188,7 @@ public class ConfigurationControleur {
     }
 
     /**
-     * Bouton "Enregistrer et lancer la simulation".
+     * Bouton "Enregistrer et lancer".
      *
      * <p>Etapes : verifier le formulaire, ecrire le config.txt en cours,
      * puis lancer Python dans un thread separe. Pendant le calcul, le
@@ -274,6 +280,7 @@ public class ConfigurationControleur {
             config.selectionner(a, cases.get(a).isSelected());
             config.setFichierGlobal(a, champsGlobaux.get(a).getText());
             config.setFichierAllocations(a, champsAllocations.get(a).getText());
+            config.setFichierMetriquesEnergie(a, champsEnergie.get(a).getText());
         }
         return config;
     }
@@ -293,6 +300,7 @@ public class ConfigurationControleur {
             cases.get(a).setSelected(config.estSelectionne(a));
             champsGlobaux.get(a).setText(config.getFichierGlobal(a));
             champsAllocations.get(a).setText(config.getFichierAllocations(a));
+            champsEnergie.get(a).setText(config.getFichierMetriquesEnergie(a));
         }
         mettreAJourEtatDesChamps();
         mettreAJourApercu();
@@ -318,6 +326,7 @@ public class ConfigurationControleur {
             boolean coche = cases.get(a).isSelected();
             champsGlobaux.get(a).setDisable(!coche);
             champsAllocations.get(a).setDisable(!coche);
+            champsEnergie.get(a).setDisable(!coche);
         }
         spQuantum.setDisable(!cbRoundRobin.isSelected());
     }
@@ -383,13 +392,16 @@ public class ConfigurationControleur {
         champsAllocations.put(Algorithme.FIFO, tfAllocationsFifo);
         champsAllocations.put(Algorithme.ROUND_ROBIN, tfAllocationsRoundRobin);
         champsAllocations.put(Algorithme.EDF, tfAllocationsEdf);
+        champsEnergie.put(Algorithme.FIFO, tfEnergieFifo);
+        champsEnergie.put(Algorithme.ROUND_ROBIN, tfEnergieRoundRobin);
+        champsEnergie.put(Algorithme.EDF, tfEnergieEdf);
     }
 
     /** Met a jour l'apercu (et l'etat des champs) a chaque modification. */
     private void ajouterEcouteurs() {
         for (TextField champ : List.of(tfProcessus, tfRessources, tfEnergie, tfMetriques,
                 tfGlobalFifo, tfAllocationsFifo, tfGlobalRoundRobin, tfAllocationsRoundRobin,
-                tfGlobalEdf, tfAllocationsEdf)) {
+                tfGlobalEdf, tfAllocationsEdf, tfEnergieFifo, tfEnergieRoundRobin, tfEnergieEdf)) {
             champ.textProperty().addListener((obs, ancien, nouveau) -> mettreAJourApercu());
         }
         for (CheckBox caseACocher : List.of(cbFifo, cbRoundRobin, cbEdf)) {

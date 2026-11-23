@@ -89,6 +89,23 @@ class TestLectureEcriture(unittest.TestCase):
         self.assertEqual(ressources.nb_processeurs, 2)
         self.assertEqual(len(processus), 3)
         self.assertEqual(energie[12], 190)
+        # Pas de cle fichier_metriques_energie_... : nom deduit du fichier global
+        self.assertEqual(config["sorties"]["FIFO"]["energie"], "resultats_fifo_energie.csv")
+
+    def test_fichier_energie_choisi_dans_config(self):
+        with tempfile.TemporaryDirectory() as dossier:
+            chemin = os.path.join(dossier, "config.txt")
+            with open(chemin, "w", encoding="utf-8") as f:
+                f.write("fichier_processus = p.csv\n"
+                        "fichier_ressources = r.json\n"
+                        "energie = e.csv\n"
+                        "algorithmes = FIFO\n"
+                        "fichier_global_FIFO = g.csv\n"
+                        "fichier_allocations_FIFO = a.csv\n"
+                        "fichier_metriques_energie_FIFO = mon_energie.csv\n"
+                        "fichier_metriques = m.csv\n")
+            config = lire_config(chemin)
+            self.assertEqual(config["sorties"]["FIFO"]["energie"], "mon_energie.csv")
 
     def test_ecriture_nominale(self):
         with tempfile.TemporaryDirectory() as dossier:

@@ -74,27 +74,32 @@
                <Label text="3. Fichiers de sortie (écrits par Python dans le dossier Outputs)" styleClass="titre-section"/>
                <GridPane hgap="10" vgap="8">
                   <columnConstraints>
-                     <ColumnConstraints minWidth="150"/>
+                     <ColumnConstraints minWidth="130"/>
+                     <ColumnConstraints hgrow="ALWAYS"/>
                      <ColumnConstraints hgrow="ALWAYS"/>
                      <ColumnConstraints hgrow="ALWAYS"/>
                   </columnConstraints>
                   <Label text="Algorithme" styleClass="entete-colonne" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
                   <Label text="Fichier global" styleClass="entete-colonne" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
                   <Label text="Fichier des allocations" styleClass="entete-colonne" GridPane.rowIndex="0" GridPane.columnIndex="2"/>
+                  <Label text="Métriques d'énergie" styleClass="entete-colonne" GridPane.rowIndex="0" GridPane.columnIndex="3"/>
 
                   <Label text="FIFO" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
                   <TextField fx:id="tfGlobalFifo" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
                   <TextField fx:id="tfAllocationsFifo" GridPane.rowIndex="1" GridPane.columnIndex="2"/>
+                  <TextField fx:id="tfEnergieFifo" GridPane.rowIndex="1" GridPane.columnIndex="3"/>
 
                   <Label text="Round Robin" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
                   <TextField fx:id="tfGlobalRoundRobin" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
                   <TextField fx:id="tfAllocationsRoundRobin" GridPane.rowIndex="2" GridPane.columnIndex="2"/>
+                  <TextField fx:id="tfEnergieRoundRobin" GridPane.rowIndex="2" GridPane.columnIndex="3"/>
 
                   <Label text="EDF" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
                   <TextField fx:id="tfGlobalEdf" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
                   <TextField fx:id="tfAllocationsEdf" GridPane.rowIndex="3" GridPane.columnIndex="2"/>
+                  <TextField fx:id="tfEnergieEdf" GridPane.rowIndex="3" GridPane.columnIndex="3"/>
 
-                  <Label text="Fichier des métriques" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+                  <Label text="Métriques globales" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
                   <TextField fx:id="tfMetriques" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
                </GridPane>
             </VBox>
@@ -104,7 +109,7 @@
 
    <!-- ===================== Apercu et boutons (a droite) ===================== -->
    <right>
-      <VBox spacing="10" prefWidth="380" styleClass="section">
+      <VBox spacing="10" prefWidth="340" styleClass="section">
          <BorderPane.margin><Insets top="16" right="16" bottom="16" left="8"/></BorderPane.margin>
          <Label text="Aperçu de config.txt" styleClass="titre-section"/>
          <Label fx:id="lblFichierConfig" styleClass="aide" wrapText="true"/>
@@ -116,7 +121,7 @@
          <Button text="Enregistrer sous…" onAction="#enregistrerConfig" maxWidth="Infinity"/>
          <!-- Etape 3 : ecrit le config.txt en cours puis lance Python dans un thread separe -->
          <HBox spacing="8" alignment="CENTER_LEFT">
-            <Button fx:id="btnLancer" text="Enregistrer et lancer la simulation" onAction="#lancerSimulation"
+            <Button fx:id="btnLancer" text="Enregistrer et lancer" onAction="#lancerSimulation"
                     defaultButton="true" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="bouton-principal"/>
             <ProgressIndicator fx:id="piCalcul" visible="false" prefWidth="28" prefHeight="28"/>
          </HBox>

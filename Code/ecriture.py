@@ -1,10 +1,11 @@
 """
 ecriture.py
 
-Fonctions d'ecriture des 3 fichiers de sortie :
+Fonctions d'ecriture des 4 fichiers de sortie :
 - ecrire_global      : une ligne par processus
 - ecrire_allocations : une ligne par segment CPU
 - ecrire_metriques   : une ligne par algorithme
+- ecrire_energie     : une ligne par instant (metriques d'energie)
 
 Ces fonctions recoivent des dictionnaires deja remplis. Elles ne
 calculent rien, elles ecrivent uniquement.
@@ -94,7 +95,8 @@ COLONNES_ENERGIE = (
 
 
 def ecrire_energie(chemin, lignes):
-    """Ecrit l'energie disponible / consommee a chaque instant (bonus pour
-    l'affichage Java, non exige par le sujet). lignes = liste de dicts."""
+    """Ecrit le fichier des metriques d'energie d'un algorithme : energie
+    disponible / consommee a chaque instant. Son nom est choisi dans
+    config.txt (cles fichier_metriques_energie_...). lignes = liste de dicts."""
     _ecrire_csv(chemin, COLONNES_ENERGIE, lignes,
-                tri=lambda x: x["instant"])
+                tri=lambda x: x["instant"])

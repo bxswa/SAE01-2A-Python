@@ -46,6 +46,9 @@ public class Configuration {
     /** Nom du fichier des allocations de chaque algorithme. */
     private final Map<Algorithme, String> fichiersAllocations = new EnumMap<>(Algorithme.class);
 
+    /** Nom du fichier des metriques d'energie de chaque algorithme. */
+    private final Map<Algorithme, String> fichiersEnergie = new EnumMap<>(Algorithme.class);
+
     /**
      * Cree une configuration vide : aucun algorithme choisi, noms de
      * fichiers de sortie par defaut.
@@ -54,6 +57,7 @@ public class Configuration {
         for (Algorithme a : Algorithme.values()) {
             fichiersGlobaux.put(a, a.getFichierGlobalParDefaut());
             fichiersAllocations.put(a, a.getFichierAllocationsParDefaut());
+            fichiersEnergie.put(a, a.getFichierEnergieParDefaut());
         }
     }
 
@@ -98,6 +102,7 @@ public class Configuration {
         for (Algorithme a : algorithmes) {
             verifierFichierSortie(fichiersGlobaux.get(a), "global " + a.getLibelle(), erreurs);
             verifierFichierSortie(fichiersAllocations.get(a), "allocations " + a.getLibelle(), erreurs);
+            verifierFichierSortie(fichiersEnergie.get(a), "energie " + a.getLibelle(), erreurs);
         }
         verifierFichierSortie(fichierMetriques, "metriques", erreurs);
         return erreurs;
@@ -248,6 +253,22 @@ public class Configuration {
      */
     public void setFichierAllocations(Algorithme algorithme, String nom) {
         fichiersAllocations.put(algorithme, nettoyer(nom));
+    }
+
+    /**
+     * @param algorithme l'algorithme concerne
+     * @return le nom de son fichier des metriques d'energie
+     */
+    public String getFichierMetriquesEnergie(Algorithme algorithme) {
+        return fichiersEnergie.get(algorithme);
+    }
+
+    /**
+     * @param algorithme l'algorithme concerne
+     * @param nom        le nom de son fichier des metriques d'energie
+     */
+    public void setFichierMetriquesEnergie(Algorithme algorithme, String nom) {
+        fichiersEnergie.put(algorithme, nettoyer(nom));
     }
 
     /**

@@ -68,6 +68,15 @@ public enum Algorithme {
         return Constantes.PREFIXE_CLE_ALLOCATIONS + suffixeCle;
     }
 
+    /**
+     * Renvoie la cle du fichier des metriques d'energie dans config.txt.
+     *
+     * @return par exemple fichier_metriques_energie_RoundRobin
+     */
+    public String getCleEnergie() {
+        return Constantes.PREFIXE_CLE_ENERGIE_SORTIE + suffixeCle;
+    }
+
     /** @return le nom par defaut du fichier global, par exemple resultats_fifo_global.csv */
     public String getFichierGlobalParDefaut() {
         return "resultats_" + prefixeFichier + "_global" + Constantes.EXTENSION_CSV;
@@ -76,6 +85,16 @@ public enum Algorithme {
     /** @return le nom par defaut du fichier des allocations */
     public String getFichierAllocationsParDefaut() {
         return "resultats_" + prefixeFichier + "_allocations" + Constantes.EXTENSION_CSV;
+    }
+
+    /**
+     * Renvoie le nom propose par defaut pour le fichier des metriques
+     * d'energie (meme nom que Python quand la cle est absente).
+     *
+     * @return par exemple resultats_fifo_energie.csv
+     */
+    public String getFichierEnergieParDefaut() {
+        return "resultats_" + prefixeFichier + "_" + Constantes.MOT_ENERGIE + Constantes.EXTENSION_CSV;
     }
 
     /**

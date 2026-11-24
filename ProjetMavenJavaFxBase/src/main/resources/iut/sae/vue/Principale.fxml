@@ -25,7 +25,7 @@
       </Tab>
       <Tab text="Gantt par processus">
          <content>
-            <Label text="Écran à venir : diagramme de Gantt par processus." styleClass="a-venir"/>
+            <fx:include source="GanttProcessus.fxml"/>
          </content>
       </Tab>
       <Tab text="Gantt par processeur">

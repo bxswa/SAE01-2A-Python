@@ -9,33 +9,34 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 
-<TabPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
-         tabClosingPolicy="UNAVAILABLE">
+<TabPane tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1">
    <tabs>
       <Tab text="Configuration">
          <content>
-            <fx:include source="Configuration.fxml"/>
+            <fx:include source="Configuration.fxml" />
          </content>
       </Tab>
-      <Tab text="Processus">
-         <content>
-            <Label text="Écran à venir : liste des processus et dates d'exécution." styleClass="a-venir"/>
-         </content>
-      </Tab>
-      <Tab text="Gantt par processus">
-         <content>
-            <Label text="Écran à venir : diagramme de Gantt par processus." styleClass="a-venir"/>
-         </content>
-      </Tab>
+      <Tab text="Processus" />
+      <Tab text="Gantt par processus" />
       <Tab text="Gantt par processeur">
          <content>
-            <Label text="Écran à venir : diagramme de Gantt par processeur et énergie." styleClass="a-venir"/>
+            <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
+               <children>
+                  <Label text="Aucune simulation encore detectée">
+                     <font>
+                        <Font name="System Bold Italic" size="24.0" />
+                     </font>
+                  </Label>
+               </children>
+            </VBox>
          </content>
       </Tab>
       <Tab text="Comparaison">
          <content>
-            <Label text="Écran à venir : métriques et graphiques de comparaison." styleClass="a-venir"/>
+            <Label styleClass="a-venir" text="Écran à venir : métriques et graphiques de comparaison." />
          </content>
       </Tab>
    </tabs>

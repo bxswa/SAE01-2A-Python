@@ -10,32 +10,31 @@
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 
-<TabPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
-         tabClosingPolicy="UNAVAILABLE">
+<TabPane fx:id="tabPane" tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="iut.sae.controleur.PrincipaleControleur">
    <tabs>
+      <Tab disable="true" text="Processus">
+         <content>
+            <Label styleClass="a-venir" text="Écran à venir : liste des processus et dates d'exécution." />
+         </content>
+      </Tab>
+      <Tab disable="true" text="Gantt par processus">
+         <content>
+            <fx:include source="GanttProcessus.fxml" />
+         </content>
+      </Tab>
+      <Tab disable="true" text="Gantt par processeur">
+         <content>
+            <Label styleClass="a-venir" text="Écran à venir : diagramme de Gantt par processeur et énergie." />
+         </content>
+      </Tab>
+      <Tab disable="true" text="Comparaison">
+         <content>
+            <Label styleClass="a-venir" text="Écran à venir : métriques et graphiques de comparaison." />
+         </content>
+      </Tab>
       <Tab text="Configuration">
          <content>
-            <fx:include source="Configuration.fxml"/>
-         </content>
-      </Tab>
-      <Tab text="Processus">
-         <content>
-            <Label text="Écran à venir : liste des processus et dates d'exécution." styleClass="a-venir"/>
-         </content>
-      </Tab>
-      <Tab text="Gantt par processus">
-         <content>
-            <fx:include source="GanttProcessus.fxml"/>
-         </content>
-      </Tab>
-      <Tab text="Gantt par processeur">
-         <content>
-            <Label text="Écran à venir : diagramme de Gantt par processeur et énergie." styleClass="a-venir"/>
-         </content>
-      </Tab>
-      <Tab text="Comparaison">
-         <content>
-            <Label text="Écran à venir : métriques et graphiques de comparaison." styleClass="a-venir"/>
+            <fx:include source="Configuration.fxml" />
          </content>
       </Tab>
    </tabs>

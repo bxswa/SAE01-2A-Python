@@ -14,15 +14,15 @@ import iut.sae.modele.ResultatProcessus;
 import iut.sae.modele.ResultatsSimulation;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
-import javafx.scene.Node;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Polygon;
@@ -32,44 +32,20 @@ import javafx.util.StringConverter;
 
 /**
  * Controleur de l'ecran "Gantt par processus" (vue GanttProcessus.fxml).
- *
- * <p>Une ligne par processus, l'axe horizontal est le temps. Chaque
- * allocation est un rectangle colore selon le processeur utilise. Le
- * diagramme est redessine a chaque nouvelle simulation (ecoute de
- * {@link EtatApplication#resultatsProperty()}) et a chaque changement
- * d'algorithme.</p>
+ * 
+ * @Author : Lilian Francisco
  */
 public class GanttProcessusControleur {
 
-    // ------------------------------------------------------------------
-    // Constantes de dessin
-    // ------------------------------------------------------------------
-
-    /** Largeur de la colonne des noms de processus (pixels). */
     private static final double MARGE_GAUCHE = 80;
-
-    /** Hauteur reservee a l'axe du temps (pixels). */
     private static final double MARGE_HAUT = 30;
-
-    /** Marge a droite et en bas (pixels). */
     private static final double MARGE_BAS_DROITE = 20;
-
-    /** Largeur d'une unite de temps (pixels). */
     private static final double LARGEUR_UNITE = 24;
-
-    /** Hauteur d'une ligne de processus (pixels). */
     private static final double HAUTEUR_LIGNE = 34;
-
-    /** Hauteur d'un rectangle d'allocation (pixels). */
     private static final double HAUTEUR_BARRE = 20;
-
-    /** Hauteur de la barre grise d'attente (pixels). */
     private static final double HAUTEUR_ATTENTE = 4;
-
-    /** Nombre maximal d'etiquettes sur l'axe du temps. */
     private static final int NB_GRADUATIONS_MAX = 40;
 
-    /** Couleurs des processeurs (reprises dans l'ordre, en boucle). */
     private static final String[] PALETTE = {
         "#2563EB", "#16A34A", "#EA580C", "#9333EA", "#0891B2",
         "#CA8A04", "#DB2777", "#4B5563", "#65A30D", "#DC2626"
@@ -81,20 +57,12 @@ public class GanttProcessusControleur {
     private static final Color COULEUR_BUTOIR = Color.web("#DC2626");
     private static final Color COULEUR_SOUMISSION = Color.web("#111827");
 
-    // ------------------------------------------------------------------
-    // Composants de la vue
-    // ------------------------------------------------------------------
-
     @FXML private ComboBox<Algorithme> cbAlgorithme;
     @FXML private Label lblInfo;
     @FXML private Pane paneGantt;
     @FXML private VBox legende;
 
-    // ------------------------------------------------------------------
-    // Initialisation
-    // ------------------------------------------------------------------
-
-    /** Appelee apres le chargement du FXML. */
+    /** Appelée apres le chargement du FXML. */
     @FXML
     private void initialize() {
         cbAlgorithme.setConverter(new StringConverter<>() {
@@ -114,9 +82,9 @@ public class GanttProcessusControleur {
     }
 
     /**
-     * Recharge la liste des algorithmes puis redessine.
+     * Recharge la liste des algorithmes puis redessine
      *
-     * @param resultats les nouveaux resultats (peut etre null)
+     * @param resultats les nouveaux resultats
      */
     private void mettreAJour(ResultatsSimulation resultats) {
         Algorithme choisi = cbAlgorithme.getValue();
@@ -132,10 +100,6 @@ public class GanttProcessusControleur {
         }
         dessiner();
     }
-
-    // ------------------------------------------------------------------
-    // Dessin
-    // ------------------------------------------------------------------
 
     /** Dessine le diagramme de l'algorithme selectionne. */
     private void dessiner() {
@@ -233,7 +197,6 @@ public class GanttProcessusControleur {
 
         ResultatProcessus rp = ra.getResultat(p.getId());
 
-        // Barre d'attente : de la soumission a la fin
         if (rp != null && rp.estExecute()) {
             double x1 = xDe(p.getDateSoumission());
             double x2 = xDe(rp.getDateFin());
@@ -243,7 +206,6 @@ public class GanttProcessusControleur {
             paneGantt.getChildren().add(attente);
         }
 
-        // Rectangles d'execution
         for (Allocation a : parProcessus.getOrDefault(p.getId(), List.of())) {
             Rectangle r = new Rectangle(xDe(a.getDateDebut()), milieu - HAUTEUR_BARRE / 2,
                     a.getDuree() * LARGEUR_UNITE, HAUTEUR_BARRE);
@@ -257,7 +219,6 @@ public class GanttProcessusControleur {
             paneGantt.getChildren().add(r);
         }
 
-        // Date butoir (trait rouge) si elle est dans la zone affichee
         if (p.getDateButoir() >= 0 && p.getDateButoir() <= horizon) {
             double xb = xDe(p.getDateButoir());
             Line butoir = new Line(xb, y + 3, xb, y + HAUTEUR_LIGNE - 3);
@@ -267,7 +228,6 @@ public class GanttProcessusControleur {
             paneGantt.getChildren().add(butoir);
         }
 
-        // Date de soumission (petit triangle)
         double xs = xDe(p.getDateSoumission());
         Polygon triangle = new Polygon(xs, y + HAUTEUR_LIGNE - 2,
                 xs - 4, y + HAUTEUR_LIGNE - 9, xs + 4, y + HAUTEUR_LIGNE - 9);
@@ -275,7 +235,6 @@ public class GanttProcessusControleur {
         Tooltip.install(triangle, new Tooltip("Soumission de " + p.getId() + " : " + p.getDateSoumission()));
         paneGantt.getChildren().add(triangle);
 
-        // Processus jamais execute
         if (rp != null && !rp.estExecute()) {
             Text info = new Text(xs + 8, milieu + 4,
                     "non execute (RAM demandee : " + rp.getRamDemandee() + ")");
@@ -290,7 +249,7 @@ public class GanttProcessusControleur {
      * @param processeurs liste des processeurs
      */
     private void remplirLegende(List<String> processeurs) {
-        // --- Groupe 1 : processeurs ---
+
         Label titreProcesseurs = new Label("Couleur = processeur qui exécute le processus");
         titreProcesseurs.getStyleClass().add("legende-titre");
 
@@ -302,7 +261,6 @@ public class GanttProcessusControleur {
             listeProcesseurs.getChildren().add(element(carre, id));
         }
 
-        // --- Groupe 2 : symboles ---
         Label titreSymboles = new Label("Symboles");
         titreSymboles.getStyleClass().add("legende-titre");
 
@@ -359,7 +317,7 @@ public class GanttProcessusControleur {
         return zone;
     }
 
-    /** @return l'icone de la date butoir (trait rouge) */
+    /** @return l'icone de la date butoir */
     private Node iconeButoir() {
         Line trait = new Line(0, 0, 0, 16);
         trait.setStroke(COULEUR_BUTOIR);
@@ -376,10 +334,6 @@ public class GanttProcessusControleur {
         l.setStyle("-fx-font-size: 11px; -fx-font-style: italic;");
         return l;
     }
-
-    // ------------------------------------------------------------------
-    // Outils
-    // ------------------------------------------------------------------
 
     /**
      * @param instant un instant

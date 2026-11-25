@@ -20,7 +20,7 @@
       </Tab>
       <Tab text="Processus">
          <content>
-            <Label text="Écran à venir : liste des processus et dates d'exécution." styleClass="a-venir"/>
+            <fx:include source="Processus.fxml"/>
          </content>
       </Tab>
       <Tab text="Gantt par processus">
@@ -35,7 +35,7 @@
       </Tab>
       <Tab text="Comparaison">
          <content>
-            <Label text="Écran à venir : métriques et graphiques de comparaison." styleClass="a-venir"/>
+            <fx:include source="Comparaison.fxml"/>
          </content>
       </Tab>
    </tabs>

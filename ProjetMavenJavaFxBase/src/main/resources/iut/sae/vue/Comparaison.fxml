@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  Onglet "Comparaison" : metriques globales par algorithme et graphiques
+  de comparaison.
+  Controleur : iut.sae.controleur.ComparaisonControleur
+-->
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.BarChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.VBox?>
+
+<ScrollPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="iut.sae.controleur.ComparaisonControleur"
+            fitToWidth="true" styleClass="defilement">
+   <VBox spacing="16" styleClass="ecran">
+      <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
+
+      <Label fx:id="lblMessage" styleClass="aide"/>
+
+      <!-- 1. Tableau des metriques -->
+      <VBox spacing="10" styleClass="section">
+         <Label text="Métriques par algorithme" styleClass="titre-section"/>
+         <TableView fx:id="tableMetriques" prefHeight="150" minHeight="150">
+            <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
+            <columns>
+               <TableColumn fx:id="colAlgorithme" text="Algorithme"/>
+               <TableColumn fx:id="colAttente" text="Attente moyenne"/>
+               <TableColumn fx:id="colReponse" text="Réponse moyenne"/>
+               <TableColumn fx:id="colMakespan" text="Makespan"/>
+               <TableColumn fx:id="colConsommee" text="Énergie consommée"/>
+               <TableColumn fx:id="colDisponible" text="Énergie disponible"/>
+               <TableColumn fx:id="colTaux" text="Taux d'utilisation"/>
+            </columns>
+         </TableView>
+         <VBox fx:id="vbMeilleurs" spacing="4"/>
+      </VBox>
+
+      <!-- 2. Graphique des temps -->
+      <VBox spacing="10" styleClass="section">
+         <Label text="Comparaison des temps (en unités de temps)" styleClass="titre-section"/>
+         <BarChart fx:id="graphTemps" prefHeight="320" minHeight="320">
+            <xAxis><CategoryAxis/></xAxis>
+            <yAxis><NumberAxis label="Unités de temps"/></yAxis>
+         </BarChart>
+      </VBox>
+
+      <!-- 3. Graphiques d'energie -->
+      <HBox spacing="16">
+         <VBox spacing="10" styleClass="section" HBox.hgrow="ALWAYS">
+            <Label text="Énergie consommée et disponible" styleClass="titre-section"/>
+            <BarChart fx:id="graphEnergie" prefHeight="300" minHeight="300">
+               <xAxis><CategoryAxis/></xAxis>
+               <yAxis><NumberAxis label="Énergie"/></yAxis>
+            </BarChart>
+         </VBox>
+         <VBox spacing="10" styleClass="section" HBox.hgrow="ALWAYS">
+            <Label text="Taux d'utilisation de l'énergie verte" styleClass="titre-section"/>
+            <BarChart fx:id="graphTaux" prefHeight="300" minHeight="300" legendVisible="false">
+               <xAxis><CategoryAxis/></xAxis>
+               <yAxis><NumberAxis label="Taux en pourcentage"/></yAxis>
+            </BarChart>
+         </VBox>
+      </HBox>
+   </VBox>
+</ScrollPane>

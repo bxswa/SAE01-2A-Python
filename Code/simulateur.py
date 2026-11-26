@@ -87,14 +87,12 @@ def cle_edf(etat):
     return (etat.proc.date_butoir, -etat.proc.priorite)
 
 
-def dans_l_ordre(liste, algorithme):
-    """Renvoie une COPIE de la liste dans l'ordre de l'algorithme.
-
-    sorted() est stable : a egalite, l'ordre de la file est conserve.
-    """
-    if algorithme == "EDF":
-        return sorted(liste, key=cle_edf)
-    return list(liste)
+def dans_l_ordre(liste, cle_ordre=None):
+    """Renvoie une copie de la liste selon la politique d'ordonnancement."""
+    if cle_ordre is None:
+        return list(liste)
+    # sorted() est stable : a egalite, l'ordre de la file est conserve.
+    return sorted(liste, key=cle_ordre)
 
 
 def processus_sur(en_cours, cpu):
@@ -109,19 +107,45 @@ def processus_sur(en_cours, cpu):
 # Le moteur
 # =========================================================
 
+def simuler_fifo(processus, ressources, energie):
+    """Simule la politique FIFO, en conservant l'ordre de la file."""
+    return _simuler(processus, ressources, energie, "FIFO")
+
+
+def simuler_rr(processus, ressources, energie, quantum=None):
+    """Simule Round Robin : un processus rend le CPU apres son quantum."""
+    if quantum is None or quantum <= 0:
+        raise ErreurFormat("RR a besoin d'un quantum > 0")
+    return _simuler(processus, ressources, energie, "RR", quantum=quantum)
+
+
+def simuler_edf(processus, ressources, energie):
+    """Simule EDF : la date butoir la plus proche passe en premier."""
+    return _simuler(processus, ressources, energie, "EDF", cle_ordre=cle_edf)
+
+
 def simuler(processus, ressources, energie, algorithme, quantum=None):
-    """Simule un algorithme. Renvoie un objet Resultat.
+    """Choisit la fonction correspondant a l'algorithme demande."""
+    if algorithme not in ALGORITHMES:
+        raise ErreurFormat("Algorithme inconnu : %s" % algorithme)
+    if algorithme == "FIFO":
+        return simuler_fifo(processus, ressources, energie)
+    if algorithme == "RR":
+        return simuler_rr(processus, ressources, energie, quantum)
+    return simuler_edf(processus, ressources, energie)
+
+
+def _simuler(processus, ressources, energie, algorithme, cle_ordre=None,
+             quantum=None):
+    """Moteur commun aux politiques FIFO, RR et EDF.
 
     processus  : liste de Processus (lire_processus)
     ressources : objet Ressources (lire_ressources)
     energie    : dictionnaire {instant: energie} (lire_energie)
-    algorithme : "FIFO", "RR" ou "EDF"
-    quantum    : entier > 0, obligatoire pour RR
+    algorithme : nom conserve dans l'objet Resultat
+    cle_ordre  : cle de tri de la file (absente pour FIFO et RR)
+    quantum    : entier > 0 pour RR, absent pour FIFO et EDF
     """
-    if algorithme not in ALGORITHMES:
-        raise ErreurFormat("Algorithme inconnu : %s" % algorithme)
-    if algorithme == "RR" and (quantum is None or quantum <= 0):
-        raise ErreurFormat("RR a besoin d'un quantum > 0")
     if max(energie.values()) < ressources.energie_par_proc:
         raise ErreurFormat("L'energie disponible ne suffit jamais pour allumer "
                            "un seul processeur : aucun processus ne peut tourner.")
@@ -166,7 +190,7 @@ def simuler(processus, ressources, energie, algorithme, quantum=None):
 
         # ---- 4. Pause si l'energie a baisse ----
         if len(en_cours) > nb_alimentables:
-            ordre = dans_l_ordre(en_cours, algorithme)
+            ordre = dans_l_ordre(en_cours, cle_ordre)
             a_suspendre = ordre[nb_alimentables:]     # les moins prioritaires
             for etat in a_suspendre:
                 en_cours.remove(etat)
@@ -184,7 +208,7 @@ def simuler(processus, ressources, energie, algorithme, quantum=None):
             if processus_sur(en_cours, cpu) is None:
                 cpus_libres.append(cpu)
 
-        for etat in dans_l_ordre(file, algorithme):
+        for etat in dans_l_ordre(file, cle_ordre):
             if len(en_cours) >= nb_alimentables:
                 break                                  # plus de CPU alimentable
             if etat.proc.ram_necessaire > ram_libre:
@@ -222,7 +246,7 @@ def simuler(processus, ressources, energie, algorithme, quantum=None):
                 etat.cpu = None
                 en_cours.remove(etat)
                 nb_termines = nb_termines + 1
-            elif algorithme == "RR" and etat.quantum_utilise >= quantum:
+            elif quantum is not None and etat.quantum_utilise >= quantum:
                 etat.cpu = None                        # quantum fini
                 en_cours.remove(etat)
                 expires.append(etat)

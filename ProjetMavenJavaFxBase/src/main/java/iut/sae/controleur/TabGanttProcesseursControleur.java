@@ -14,6 +14,7 @@ import iut.sae.modele.EtatApplication;
 import iut.sae.modele.Metrique;
 import iut.sae.modele.Processus;
 import iut.sae.modele.ResultatAlgorithme;
+import iut.sae.modele.ResultatProcessus;
 import iut.sae.modele.ResultatsSimulation;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -54,9 +55,9 @@ public class TabGanttProcesseursControleur implements Initializable {
     //Longueur de la colonne contenant le nom des processeurs
     private static final double LONGUEUR_COLONNE_DEBUT = 70.0;
     //Longueur d'une case normale
-    private static final double LONGUEUR_CASE = 28.0;
-    private static final double LARGEUR_CASE = 26.0;
-    private static final double ECART_COLONNE = LONGUEUR_CASE/0.8;
+    private static final double LONGUEUR_CASE = 34.0;
+    private static final double LARGEUR_CASE = 32.0;
+    private static final double ECART_COLONNE = LONGUEUR_CASE / 0.8;
     private static final double ECART_VERTICAL_LIGNES = 6.0;
     private static final double HAUTEUR_BARRE_TEMPS = 20.0;
 
@@ -65,7 +66,6 @@ public class TabGanttProcesseursControleur implements Initializable {
     private final Map<String, String> couleursParProcessus = new LinkedHashMap<>();
     private final Map<String, Processus> processusParId = new LinkedHashMap<>();
 
-    private final Label lblEtatVide = new Label("Aucun résultat n'a été obtenu...");
     private final FlowPane zoneLegende = new FlowPane();
 
     @FXML
@@ -107,6 +107,13 @@ public class TabGanttProcesseursControleur implements Initializable {
             afficherEtatVide();
         }
         else{
+            Label lblTitrePage = new Label("Dernieres relevés de l'application");
+            lblTitrePage.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #140d0d;");
+            lblTitrePage.setPadding(new Insets(12, 14, 4, 14));
+            lblTitrePage.setAlignment(Pos.TOP_CENTER);
+
+            this.boiteConteneurElements.getChildren().add(lblTitrePage);
+
             //Association de chaque processus a une couleur
             associationProcessusCouleurs();
             //Affichage de tous les diagrammes
@@ -120,9 +127,12 @@ public class TabGanttProcesseursControleur implements Initializable {
      * Affiche l'hypothetique etat vide
      */
     private void afficherEtatVide() {
+        Label lblEtatVide = new Label("Aucun résultat n'a été obtenu...");
+
         lblEtatVide.setMaxWidth(Double.MAX_VALUE);
         lblEtatVide.setAlignment(Pos.CENTER);
         VBox.setVgrow(lblEtatVide, Priority.ALWAYS);
+
         this.boiteConteneurElements.getChildren().add(lblEtatVide);
     }
 
@@ -167,6 +177,11 @@ public class TabGanttProcesseursControleur implements Initializable {
         double hauteurGrille = (nbProcs * LARGEUR_CASE)
                 + (Math.max(0, nbProcs - 1) * ECART_VERTICAL_LIGNES);
 
+        int nbLignesRef = Math.max(nbProcs, 2);
+        double hauteurDeuxLignes = (nbLignesRef * LARGEUR_CASE)
+                + (Math.max(0, nbLignesRef - 1) * ECART_VERTICAL_LIGNES);
+        double hauteurScroll = HAUTEUR_BARRE_TEMPS + hauteurDeuxLignes + 24.0;
+
         for (Algorithme algo : this.resultatsLancement.getAlgorithmes()) {
             ResultatAlgorithme resultatAlgo = this.resultatsLancement.getResultat(algo);
             if (resultatAlgo == null) {
@@ -190,24 +205,25 @@ public class TabGanttProcesseursControleur implements Initializable {
             VBox diagrammeAssemble = new VBox(
                     3,
                     construireBarreTemps(nbPas),
-                    construireGrilleAvecBornes(processeurs, nbPas, occupation, hauteurGrille)
+                    construireGrilleAvecBornes(processeurs, nbPas, occupation, hauteurGrille, resultatAlgo)
             );
             diagrammeAssemble.setMinWidth(Region.USE_PREF_SIZE);
             diagrammeAssemble.setMaxWidth(Region.USE_PREF_SIZE);
 
             VBox zoneDiagramme = new VBox(diagrammeAssemble);
             zoneDiagramme.setAlignment(Pos.CENTER_LEFT);
-            zoneDiagramme.setPadding(new Insets(4, 14, 20, 14));
+            zoneDiagramme.setPadding(new Insets(4, 14, 12, 14));
             zoneDiagramme.setMinWidth(Region.USE_PREF_SIZE);
 
             ScrollPane scrollDiagramme = new ScrollPane(zoneDiagramme);
-            scrollDiagramme.setFitToWidth(true);
+            scrollDiagramme.setFitToWidth(false);
             scrollDiagramme.setFitToHeight(false);
             scrollDiagramme.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
             scrollDiagramme.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
             scrollDiagramme.setMaxWidth(Double.MAX_VALUE);
-            scrollDiagramme.setMinHeight(Region.USE_PREF_SIZE);
-            scrollDiagramme.setPrefHeight(HAUTEUR_BARRE_TEMPS + hauteurGrille + 24.0);
+            scrollDiagramme.setMinHeight(hauteurScroll);
+            scrollDiagramme.setPrefHeight(hauteurScroll);
+            scrollDiagramme.setMaxHeight(hauteurScroll);
             scrollDiagramme.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
 
             blocAlgo.getChildren().addAll(titreAlgo, scrollDiagramme);
@@ -257,11 +273,13 @@ public class TabGanttProcesseursControleur implements Initializable {
      * @param nbPas nombre d'etape de temps qu'a pris l'algorithme (Makespan)
      * @param occupation representation de toutes les allocations par processeurs (@see indexerAllocation())
      * @param largeurGrille largeur que doit avoir la grille
+     * @param resultatAlgo resultats de l'algorithme courant
      * @return StackPane contenant la grilleS
      */
     private StackPane construireGrilleAvecBornes(List<String> processeurs, int nbPas,
                                                Map<String, Map<Integer, String>> occupation,
-                                               double largeurGrille) {
+                                               double largeurGrille,
+                                               ResultatAlgorithme resultatAlgo) {
         GridPane grid = new GridPane();
         grid.setHgap(0);
         grid.setVgap(ECART_VERTICAL_LIGNES);
@@ -271,7 +289,6 @@ public class TabGanttProcesseursControleur implements Initializable {
         for (int t = 0; t <= nbPas; t++) {
             grid.getColumnConstraints().add(new ColumnConstraints(LONGUEUR_CASE));
             grid.getColumnConstraints().add(new ColumnConstraints(ECART_COLONNE));
-            
         }
 
         int nbProcs = processeurs.size();
@@ -285,7 +302,15 @@ public class TabGanttProcesseursControleur implements Initializable {
 
             Map<Integer, String> tempsVersProcessus = occupation.getOrDefault(idProc, Map.of());
             for (int t = 0; t < nbPas; t++) {
-                grid.add(creerCase(tempsVersProcessus.get(t), t), 1 + (t * 2), row);
+                String idAlloue = tempsVersProcessus.get(t);
+                boolean estDerniereAllocation = false;
+                if (idAlloue != null && resultatAlgo != null) {
+                    ResultatProcessus resProc = resultatAlgo.getResultat(idAlloue);
+                    if (resProc != null && resProc.estExecute()) {
+                        estDerniereAllocation = (t == resProc.getDateFin() - 1);
+                    }
+                }
+                grid.add(creerCase(idAlloue, t, estDerniereAllocation), 1 + (t * 2), row);
             }
         }
 
@@ -375,21 +400,33 @@ public class TabGanttProcesseursControleur implements Initializable {
      * si l'etape de temps concorde a un instant d'allocation pour celui-ci
      * @param idProcessusAlloue identifiant du processus
      * @param pasTemps etape de temps testee
+     * @param estDerniereAllocation vrai si c'est le dernier pas de temps ou ce processus est alloue
      * @return Pane correspondant a l'apparence d'une case sur le diagramme
      */
-    private Pane creerCase(String idProcessusAlloue, int pasTemps) {
+    private Pane creerCase(String idProcessusAlloue, int pasTemps, boolean estDerniereAllocation) {
         Pane cellule = new Pane();
         cellule.setPrefSize(LONGUEUR_CASE, LARGEUR_CASE);
         cellule.setMinSize(LONGUEUR_CASE, LARGEUR_CASE);
 
         if (idProcessusAlloue != null) {
             String couleurHex = couleursParProcessus.getOrDefault(idProcessusAlloue, "#4E79A7");
-            cellule.setStyle(
-                    "-fx-background-color: " + couleurHex + ";" +
-                    "-fx-background-radius: 3;" +
-                    "-fx-border-color: rgba(0,0,0,0.25);" +
-                    "-fx-border-radius: 3;"
-            );
+            if (estDerniereAllocation) {
+                cellule.setStyle(
+                        "-fx-background-color: " + couleurHex + ";" +
+                        "-fx-background-radius: 3;" +
+                        "-fx-border-color: #111111;" +
+                        "-fx-border-width: 2.5;" +
+                        "-fx-border-radius: 3;"
+                );
+            } else {
+                cellule.setStyle(
+                        "-fx-background-color: " + couleurHex + ";" +
+                        "-fx-background-radius: 3;" +
+                        "-fx-border-color: rgba(0,0,0,0.25);" +
+                        "-fx-border-width: 1;" +
+                        "-fx-border-radius: 3;"
+                );
+            }
         } else {
             cellule.setStyle(
                     "-fx-background-color: rgba(0,0,0,0.03);" +

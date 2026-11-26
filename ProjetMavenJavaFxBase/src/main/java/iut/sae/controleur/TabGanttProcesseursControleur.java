@@ -40,7 +40,7 @@ import javafx.scene.shape.Line;
  * @Author Alexis Sudre Brito
  * Niveau de Vibe-Coding assez consequant...
  * 
- * @Version 1.8
+ * @Version 1.9
  */
 public class TabGanttProcesseursControleur implements Initializable {
 
@@ -188,7 +188,7 @@ public class TabGanttProcesseursControleur implements Initializable {
                 continue;
             }
 
-            int nbPas = retrouverNombrePas(algo, resultatAlgo);
+            int makespanAlgo = retrouverNombrePas(algo, resultatAlgo);
             Map<String, Map<Integer, String>> occupation = indexerAllocations(resultatAlgo.getAllocations());
 
             //VBox intermediare (nous voulons des espacements differents
@@ -204,8 +204,8 @@ public class TabGanttProcesseursControleur implements Initializable {
 
             VBox diagrammeAssemble = new VBox(
                     3,
-                    construireBarreTemps(nbPas),
-                    construireGrilleAvecBornes(processeurs, nbPas, occupation, hauteurGrille, resultatAlgo)
+                    construireBarreTemps(makespanAlgo),
+                    construireGrilleAvecBornes(processeurs, makespanAlgo, occupation, hauteurGrille, resultatAlgo)
             );
             diagrammeAssemble.setMinWidth(Region.USE_PREF_SIZE);
             diagrammeAssemble.setMaxWidth(Region.USE_PREF_SIZE);
@@ -270,13 +270,13 @@ public class TabGanttProcesseursControleur implements Initializable {
      * Cree un GridPane, avec une barre entre chaque colonne
      * Est mise dans un StackPane, afin de pouvoir placer les barres indiquant les dates de soumissions, ou butoirs
      * @param processeurs liste des identifiants de chaque processeur (aplacer tout a gauche)
-     * @param nbPas nombre d'etape de temps qu'a pris l'algorithme (Makespan)
+     * @param nbTemps nombre d'etape de temps qu'a pris l'algorithme (Makespan)
      * @param occupation representation de toutes les allocations par processeurs (@see indexerAllocation())
      * @param largeurGrille largeur que doit avoir la grille
      * @param resultatAlgo resultats de l'algorithme courant
      * @return StackPane contenant la grilleS
      */
-    private StackPane construireGrilleAvecBornes(List<String> processeurs, int nbPas,
+    private StackPane construireGrilleAvecBornes(List<String> processeurs, int nbTemps,
                                                Map<String, Map<Integer, String>> occupation,
                                                double largeurGrille,
                                                ResultatAlgorithme resultatAlgo) {
@@ -285,12 +285,41 @@ public class TabGanttProcesseursControleur implements Initializable {
         grid.setVgap(ECART_VERTICAL_LIGNES);
         grid.setAlignment(Pos.CENTER_LEFT);
 
+        configurerColonnesGrille(grid, nbTemps);
+        remplirLignesProcesseurs(grid, processeurs, nbTemps, occupation, resultatAlgo);
+        ajouterSeparateursContinus(grid, processeurs.size(), nbTemps, largeurGrille);
+
+        StackPane pile = new StackPane(grid, construireCalqueBornes(nbTemps, largeurGrille));
+        pile.setAlignment(Pos.TOP_LEFT);
+        pile.setMinWidth(Region.USE_PREF_SIZE);
+        pile.setMaxWidth(Region.USE_PREF_SIZE);
+        return pile;
+    }
+
+    /**
+     * Ajoute autant de colonne au diagramme que necessaire
+     * @param grid diagramme Gantt par processeur
+     * @param nbTemps  nombre d'etape de temps de l'algorithme
+     */
+    private void configurerColonnesGrille(GridPane grid, int nbTemps) {
         grid.getColumnConstraints().add(new ColumnConstraints(LONGUEUR_COLONNE_DEBUT));
-        for (int t = 0; t <= nbPas; t++) {
+        for (int t = 0; t <= nbTemps; t++) {
             grid.getColumnConstraints().add(new ColumnConstraints(LONGUEUR_CASE));
             grid.getColumnConstraints().add(new ColumnConstraints(ECART_COLONNE));
         }
+    }
 
+    /**
+     * Configure les lignes du diagramme
+     * @param grid diagramme de Gantt par processeur
+     * @param processeurs Liste des identifiants pour chaque processeur utilise
+     * @param nbTemps nombre d'etape de temps de l'algorithme
+     * @param occupation
+     * @param resultatAlgo
+     */
+    private void remplirLignesProcesseurs(GridPane grid, List<String> processeurs, int nbTemps,
+                                          Map<String, Map<Integer, String>> occupation,
+                                          ResultatAlgorithme resultatAlgo) {
         int nbProcs = processeurs.size();
         for (int row = 0; row < nbProcs; row++) {
             String idProc = processeurs.get(row);
@@ -301,39 +330,52 @@ public class TabGanttProcesseursControleur implements Initializable {
             grid.add(lblProc, 0, row);
 
             Map<Integer, String> tempsVersProcessus = occupation.getOrDefault(idProc, Map.of());
-            for (int t = 0; t < nbPas; t++) {
+            for (int t = 0; t < nbTemps; t++) {
                 String idAlloue = tempsVersProcessus.get(t);
-                boolean estDerniereAllocation = false;
-                if (idAlloue != null && resultatAlgo != null) {
-                    ResultatProcessus resProc = resultatAlgo.getResultat(idAlloue);
-                    if (resProc != null && resProc.estExecute()) {
-                        estDerniereAllocation = (t == resProc.getDateFin() - 1);
-                    }
-                }
-                grid.add(creerCase(idAlloue, t, estDerniereAllocation), 1 + (t * 2), row);
+                grid.add(creerCase(idAlloue, estDerniereAllocation(resultatAlgo, idAlloue, t)), 1 + (t * 2), row);
             }
         }
+    }
 
-        if (nbProcs > 0) {
-            for (int t = 0; t < nbPas - 1; t++) {
-                Line ligne = new Line(0, 0, 0, largeurGrille);
-                ligne.setStroke(Color.web("#CCCCCC"));
-                ligne.setStrokeWidth(1.0);
-
-                StackPane conteneurLigne = new StackPane(ligne);
-                conteneurLigne.setMinWidth(ECART_COLONNE);
-                conteneurLigne.setPrefWidth(ECART_COLONNE);
-                conteneurLigne.setAlignment(Pos.CENTER);
-                grid.add(conteneurLigne, 2 + (t * 2), 0);
-                GridPane.setRowSpan(conteneurLigne, nbProcs);
-            }
+    /**
+     * Verifie quand est-ce qu'un processus est traite pour la derniere fois
+     * @param resultatAlgo resultats de l'algorithme
+     * @param idAlloue identifiant du processus traite
+     * @param tempsFin date de fin du processus
+     * @return booleen en fonction de si l'etape traite par le processeur est bien la derniere allocation du processus
+     */
+    private boolean estDerniereAllocation(ResultatAlgorithme resultatAlgo, String idAlloue, int tempsFin) {
+        if (idAlloue == null || resultatAlgo == null) {
+            return false;
         }
+        ResultatProcessus resProc = resultatAlgo.getResultat(idAlloue);
+        return resProc != null && resProc.estExecute() && tempsFin == resProc.getDateFin() - 1;
+    }
 
-        StackPane pile = new StackPane(grid, construireCalqueBornes(nbPas, largeurGrille));
-        pile.setAlignment(Pos.TOP_LEFT);
-        pile.setMinWidth(Region.USE_PREF_SIZE);
-        pile.setMaxWidth(Region.USE_PREF_SIZE);
-        return pile;
+    /**
+     * Ajoute des lignes grises afin d'etablir les etapes de temps dans le diagramme
+     * Ajuste la longueur de ces lignes en fonction du nombre de ligne du diagramme
+     * @param grid diagramme Gantt par processeur
+     * @param nbProcesseurs nombre de processeur au total
+     * @param nbTemps nombre d'etapes de temps total de l'algorithme
+     * @param largeurGrille largeur (ou "hauteur") du diagramme
+     */
+    private void ajouterSeparateursContinus(GridPane grid, int nbProcesseurs, int nbTemps, double largeurGrille) {
+        if (nbProcesseurs <= 0) {
+            return;
+        }
+        for (int t = 0; t < nbTemps - 1; t++) {
+            Line ligne = new Line(0, 0, 0, largeurGrille);
+            ligne.setStroke(Color.web("#CCCCCC"));
+            ligne.setStrokeWidth(1.0);
+
+            StackPane conteneurLigne = new StackPane(ligne);
+            conteneurLigne.setMinWidth(ECART_COLONNE);
+            conteneurLigne.setPrefWidth(ECART_COLONNE);
+            conteneurLigne.setAlignment(Pos.CENTER);
+            grid.add(conteneurLigne, 2 + (t * 2), 0);
+            GridPane.setRowSpan(conteneurLigne, nbProcesseurs);
+        }
     }
 
     /**
@@ -354,7 +396,7 @@ public class TabGanttProcesseursControleur implements Initializable {
 
         Map<Integer, List<Line>> traitsParInstant = new HashMap<>();
         for (Processus p : processusParId.values()) {
-            Color couleur = Color.web(couleursParProcessus.getOrDefault(p.getId(), "#4E79A7"));
+            Color couleur = Color.web(couleursParProcessus.getOrDefault(p.getId(), PALETTE_COULEURS.get(0)));
 
             int soumission = p.getDateSoumission();
             if (soumission >= 0 && soumission <= nbEtapes) {
@@ -399,42 +441,35 @@ public class TabGanttProcesseursControleur implements Initializable {
      * Remplie une case de la couleur correspondant a un processus,
      * si l'etape de temps concorde a un instant d'allocation pour celui-ci
      * @param idProcessusAlloue identifiant du processus
-     * @param pasTemps etape de temps testee
      * @param estDerniereAllocation vrai si c'est le dernier pas de temps ou ce processus est alloue
      * @return Pane correspondant a l'apparence d'une case sur le diagramme
      */
-    private Pane creerCase(String idProcessusAlloue, int pasTemps, boolean estDerniereAllocation) {
+    private Pane creerCase(String idProcessusAlloue, boolean estDerniereAllocation) {
         Pane cellule = new Pane();
         cellule.setPrefSize(LONGUEUR_CASE, LARGEUR_CASE);
         cellule.setMinSize(LONGUEUR_CASE, LARGEUR_CASE);
 
         if (idProcessusAlloue != null) {
-            String couleurHex = couleursParProcessus.getOrDefault(idProcessusAlloue, "#4E79A7");
+            String couleurHex = couleursParProcessus.getOrDefault(idProcessusAlloue, PALETTE_COULEURS.get(0));
             if (estDerniereAllocation) {
-                cellule.setStyle(
-                        "-fx-background-color: " + couleurHex + ";" +
-                        "-fx-background-radius: 3;" +
-                        "-fx-border-color: #111111;" +
-                        "-fx-border-width: 2.5;" +
-                        "-fx-border-radius: 3;"
-                );
+                affecterStyleCase(cellule, couleurHex, "#111111", 2.5, 3, 3);
             } else {
-                cellule.setStyle(
-                        "-fx-background-color: " + couleurHex + ";" +
-                        "-fx-background-radius: 3;" +
-                        "-fx-border-color: rgba(0,0,0,0.25);" +
-                        "-fx-border-width: 1;" +
-                        "-fx-border-radius: 3;"
-                );
+                affecterStyleCase(cellule, couleurHex, "rgba(0,0,0,25)", 1, 3, 3);
             }
         } else {
-            cellule.setStyle(
-                    "-fx-background-color: rgba(0,0,0,0.03);" +
-                    "-fx-border-color: rgba(0,0,0,0.08);" +
-                    "-fx-border-radius: 3;"
-            );
+            affecterStyleCase(cellule, "rgba(0,0,0,0.03)", "rgba(0,0,0,0.08)", 0, 0, 3);
         }
         return cellule;
+    }
+
+    private void affecterStyleCase(Pane cellule, String couleurFond, String couleurBord, double longueurBord, double angleCase, double angleBord){
+        cellule.setStyle(
+            "-fx-background-color: " + couleurFond + ";" +
+            "-fx-border-color: " + couleurBord +";" +
+            "-fx-border-width: " + longueurBord +";" +
+            "-fx-background-radius: " + angleCase + ";" +
+            "-fx-border-radius: " + angleBord + ";"
+        );
     }
 
     /**

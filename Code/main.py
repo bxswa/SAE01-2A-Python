@@ -42,13 +42,6 @@ def dossier_sortie_par_defaut(chemin_config):
     return dossier
 
 
-def nom_fichier_energie(chemin_global):
-    """resultats_fifo_global.csv -> resultats_fifo_energie.csv"""
-    if "global" in chemin_global:
-        return chemin_global.replace("global", "energie")
-    return chemin_global.replace(".csv", "") + "_energie.csv"
-
-
 def executer(chemin_config, dossier_sortie=None):
     config = lire_config(chemin_config)
     dossier_config = os.path.dirname(os.path.abspath(chemin_config))
@@ -66,9 +59,10 @@ def executer(chemin_config, dossier_sortie=None):
 
         sortie_global = chemin_complet(config["sorties"][algo]["global"], dossier_sortie)
         sortie_alloc = chemin_complet(config["sorties"][algo]["allocations"], dossier_sortie)
+        sortie_energie = chemin_complet(config["sorties"][algo]["energie"], dossier_sortie)
         ecrire_global(sortie_global, lignes_global(resultat))
         ecrire_allocations(sortie_alloc, lignes_allocations(resultat))
-        ecrire_energie(nom_fichier_energie(sortie_global), lignes_energie(resultat))
+        ecrire_energie(sortie_energie, lignes_energie(resultat))
 
         metriques = calculer_metriques(resultat)
         toutes_metriques.append(metriques)

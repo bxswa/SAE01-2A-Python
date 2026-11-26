@@ -19,7 +19,6 @@ import iut.sae.modele.Processus;
 import iut.sae.modele.ResultatAlgorithme;
 import iut.sae.modele.ResultatProcessus;
 import iut.sae.modele.ResultatsSimulation;
-import iut.sae.util.Chemins;
 import iut.sae.util.Constantes;
 
 /**
@@ -49,7 +48,7 @@ public class LecteurResultats {
         for (Algorithme a : config.getAlgorithmes()) {
             Path global = dossierSortie.resolve(config.getFichierGlobal(a));
             Path allocations = dossierSortie.resolve(config.getFichierAllocations(a));
-            Path energie = dossierSortie.resolve(Chemins.fichierEnergie(config.getFichierGlobal(a)));
+            Path energie = dossierSortie.resolve(config.getFichierMetriquesEnergie(a));
             resultats.put(a, new ResultatAlgorithme(a,
                     lireGlobal(global),
                     lireAllocations(allocations),
@@ -134,8 +133,8 @@ public class LecteurResultats {
     }
 
     /**
-     * Lit le fichier d'energie d'un algorithme. Ce fichier est un bonus :
-     * s'il n'existe pas, une liste vide est renvoyee.
+     * Lit le fichier des metriques d'energie d'un algorithme. S'il
+     * n'existe pas (ancienne version de Python), une liste vide est renvoyee.
      *
      * @param fichier le fichier d'energie
      * @return une ligne par instant (vide si le fichier est absent)

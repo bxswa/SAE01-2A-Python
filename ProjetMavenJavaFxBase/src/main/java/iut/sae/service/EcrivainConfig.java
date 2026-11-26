@@ -60,7 +60,8 @@ public class EcrivainConfig {
     }
 
     /**
-     * Ajoute les deux fichiers de sortie de chaque algorithme choisi.
+     * Ajoute les trois fichiers de sortie de chaque algorithme choisi
+     * (global, allocations, metriques d'energie).
      *
      * @param texte  le texte en cours de construction
      * @param config la configuration
@@ -69,6 +70,7 @@ public class EcrivainConfig {
         for (Algorithme a : config.getAlgorithmes()) {
             ajouterLigne(texte, a.getCleGlobal(), config.getFichierGlobal(a));
             ajouterLigne(texte, a.getCleAllocations(), config.getFichierAllocations(a));
+            ajouterLigne(texte, a.getCleEnergie(), config.getFichierMetriquesEnergie(a));
         }
     }
 

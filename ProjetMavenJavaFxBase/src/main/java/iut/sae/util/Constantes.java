@@ -105,6 +105,9 @@ public final class Constantes {
     /** Debut de la cle du fichier des allocations d'un algorithme. */
     public static final String PREFIXE_CLE_ALLOCATIONS = "fichier_allocations_";
 
+    /** Debut de la cle du fichier des metriques d'energie d'un algorithme (sortie). */
+    public static final String PREFIXE_CLE_ENERGIE_SORTIE = "fichier_metriques_energie_";
+
     /** Separateur entre une cle et sa valeur. */
     public static final String SEPARATEUR_CLE_VALEUR = "=";
 

@@ -19,7 +19,7 @@ On utilise Python 3, sans bibliothèque externe. Les commandes se lancent depuis
 ```bash
 python3 Code/main.py Inputs/Test1/config.txt                  # résultats dans Outputs/Test1
 python3 Code/main.py Inputs/Test1/config.txt mon/dossier      # dossier de sortie au choix
-python3 -m unittest discover -s Code/tests -v                 # 25 tests
+python3 -m unittest discover -s Code/tests -v                 # 29 tests
 ```
 
 Le code retour vaut 0 si tout s'est bien passé, et 1 en cas d'erreur (message sur `stderr`).
@@ -31,20 +31,24 @@ Le code retour vaut 0 si tout s'est bien passé, et 1 en cas d'erreur (message s
 | `erreurs.py` | les 3 exceptions (lecture, format, écriture) | lecture/écriture |
 | `lecture.py` | lecture et vérification des 4 fichiers d'entrée | lecture/écriture |
 | `ecriture.py` | écriture des fichiers CSV de sortie | lecture/écriture |
-| `simulateur.py` | **le moteur commun** aux 3 algorithmes | algorithmes |
+| `simulateur.py` | moteur commun et fonctions `simuler_fifo`, `simuler_rr`, `simuler_edf` | algorithmes |
 | `metriques.py` | calcul des métriques | algorithmes |
 | `main.py` | enchaîne lecture → simulation → écriture | tous |
-| `tests/test_simulateur.py` | 25 tests unitaires | tous |
+| `tests/test_simulateur.py` | 29 tests unitaires | tous |
 
 ## Le moteur (simulateur.py)
 
-Un seul moteur sert aux trois algorithmes. Ils ne diffèrent que sur deux points :
+Chaque politique possède sa fonction Python (`simuler_fifo`, `simuler_rr`,
+`simuler_edf` dans `simulateur.py`). `simuler()` sélectionne la fonction à
+appeler selon le nom configuré. Ces fonctions réutilisent un moteur commun
+pour appliquer les contraintes de RAM, d'énergie et de processeurs. Les
+politiques diffèrent ainsi sur les règles propres à chacune :
 
-| | Ordre de parcours de la file | Garde le CPU jusqu'à la fin ? |
+| | Ordre de parcours de la file | Règle de préemption |
 |---|---|---|
-| FIFO | ordre d'arrivée | oui |
-| RR | ordre d'arrivée | non : retour en fin de file après `quantum` instants |
-| EDF | date butoir la plus proche (puis priorité) | oui |
+| FIFO (`simuler_fifo`) | ordre d'arrivée | aucune : garde le CPU jusqu'à la fin |
+| RR (`simuler_rr`) | ordre d'arrivée | retour en fin de file après `quantum` instants |
+| EDF (`simuler_edf`) | date butoir la plus proche (puis priorité) | aucune : garde le CPU jusqu'à la fin |
 
 Voici ce qui se passe à chaque instant `t` :
 

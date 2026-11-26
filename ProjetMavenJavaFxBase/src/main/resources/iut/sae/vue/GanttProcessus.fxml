@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  Ecran "Gantt par processus" : une ligne par processus, un rectangle par
+  periode d'execution.
+  Controleur : iut.sae.controleur.GanttProcessusControleur
+-->
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="iut.sae.controleur.GanttProcessusControleur"
+            styleClass="ecran">
+
+   <top>
+      <HBox spacing="12" alignment="CENTER_LEFT" styleClass="section">
+         <BorderPane.margin><Insets top="16" right="16" bottom="8" left="16"/></BorderPane.margin>
+         <Label text="Algorithme"/>
+         <ComboBox fx:id="cbAlgorithme" prefWidth="160"/>
+         <Label fx:id="lblInfo" styleClass="aide"/>
+      </HBox>
+   </top>
+
+   <center>
+      <ScrollPane styleClass="defilement">
+         <BorderPane.margin><Insets top="0" right="16" bottom="0" left="16"/></BorderPane.margin>
+         <Pane fx:id="paneGantt" styleClass="section"/>
+      </ScrollPane>
+   </center>
+
+   <bottom>
+      <VBox fx:id="legende" spacing="8" styleClass="section">
+         <BorderPane.margin><Insets top="8" right="16" bottom="12" left="16"/></BorderPane.margin>
+      </VBox>
+   </bottom>
+</BorderPane>

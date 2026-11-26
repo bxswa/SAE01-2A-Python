@@ -43,19 +43,24 @@ import javafx.scene.shape.Line;
  */
 public class TabGanttProcesseursControleur implements Initializable {
 
+    //Liste des couleurs associees aux processus
+    //Limitees a 10 pour le moment...
     private static final List<String> PALETTE_COULEURS = List.of(
             "#4E79A7", "#F28E2B", "#E15759", "#76B7B2",
             "#59A14F", "#EDC948", "#B07AA1", "#FF9DA7",
             "#9C755F", "#BAB0AC"
     );
 
-    private static final double LARGEUR_COLONNE_CPU = 70.0;
-    private static final double LARGEUR_CASE = 28.0;
-    private static final double HAUTEUR_CASE = 26.0;
-    private static final double LARGEUR_SEPARATEUR = LARGEUR_CASE/0.8;
+    //Longueur de la colonne contenant le nom des processeurs
+    private static final double LONGUEUR_COLONNE_DEBUT = 70.0;
+    //Longueur d'une case normale
+    private static final double LONGUEUR_CASE = 28.0;
+    private static final double LARGEUR_CASE = 26.0;
+    private static final double ECART_COLONNE = LONGUEUR_CASE/0.8;
     private static final double ECART_VERTICAL_LIGNES = 6.0;
     private static final double HAUTEUR_BARRE_TEMPS = 20.0;
 
+    //Resultats de la derniere simulation
     private ResultatsSimulation resultatsLancement;
     private final Map<String, String> couleursParProcessus = new LinkedHashMap<>();
     private final Map<String, Processus> processusParId = new LinkedHashMap<>();
@@ -103,7 +108,7 @@ public class TabGanttProcesseursControleur implements Initializable {
         }
         else{
             //Association de chaque processus a une couleur
-            indexerProcessusEtCouleurs();
+            associationProcessusCouleurs();
             //Affichage de tous les diagrammes
             afficherDiagrammes();
             //Affichage de la legende a la fin
@@ -124,8 +129,9 @@ public class TabGanttProcesseursControleur implements Initializable {
     /**
      * Association entre les processus et leurs couleurs
      */
-    private void indexerProcessusEtCouleurs() {
+    private void associationProcessusCouleurs() {
         int index = 0;
+
         if (this.resultatsLancement.getProcessus() != null) {
             for (Processus p : this.resultatsLancement.getProcessus()) {
                 processusParId.put(p.getId(), p);
@@ -143,6 +149,7 @@ public class TabGanttProcesseursControleur implements Initializable {
             for (Allocation alloc : r.getAllocations()) {
                 String idProc = alloc.getIdProcessus();
                 if (!couleursParProcessus.containsKey(idProc)) {
+                    //Si plus de 10 processus, on repette la palette de couleur depuis le debut
                     couleursParProcessus.put(idProc, PALETTE_COULEURS.get(index % PALETTE_COULEURS.size()));
                     index++;
                 }
@@ -157,7 +164,7 @@ public class TabGanttProcesseursControleur implements Initializable {
     private void afficherDiagrammes() {
         List<String> processeurs = this.resultatsLancement.getProcesseurs();
         int nbProcs = processeurs.size();
-        double hauteurGrille = (nbProcs * HAUTEUR_CASE)
+        double hauteurGrille = (nbProcs * LARGEUR_CASE)
                 + (Math.max(0, nbProcs - 1) * ECART_VERTICAL_LIGNES);
 
         for (Algorithme algo : this.resultatsLancement.getAlgorithmes()) {
@@ -169,17 +176,17 @@ public class TabGanttProcesseursControleur implements Initializable {
             int nbPas = retrouverNombrePas(algo, resultatAlgo);
             Map<String, Map<Integer, String>> occupation = indexerAllocations(resultatAlgo.getAllocations());
 
-            VBox blocAlgo = new VBox(8);
+            //VBox intermediare (nous voulons des espacements differents
+            //entre les diagrammes que entre les titres et leur diagramme)
+            VBox blocAlgo = new VBox(5);
             blocAlgo.setPadding(new Insets(10, 14, 10, 14));
             blocAlgo.setMaxWidth(Double.MAX_VALUE);
             blocAlgo.setFillWidth(true);
-            blocAlgo.setAlignment(Pos.CENTER);
+            blocAlgo.setAlignment(Pos.CENTER_LEFT);
 
             Label titreAlgo = new Label(algo.getLibelle());
             titreAlgo.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
 
-            //VBox intermediare (nous voulons des espacements differents
-            //entre les diagrammes que entre les titres et leur diagramme)
             VBox diagrammeAssemble = new VBox(
                     3,
                     construireBarreTemps(nbPas),
@@ -189,8 +196,8 @@ public class TabGanttProcesseursControleur implements Initializable {
             diagrammeAssemble.setMaxWidth(Region.USE_PREF_SIZE);
 
             VBox zoneDiagramme = new VBox(diagrammeAssemble);
-            zoneDiagramme.setAlignment(Pos.CENTER);
-            zoneDiagramme.setPadding(new Insets(4, 14, 6, 14));
+            zoneDiagramme.setAlignment(Pos.CENTER_LEFT);
+            zoneDiagramme.setPadding(new Insets(4, 14, 20, 14));
             zoneDiagramme.setMinWidth(Region.USE_PREF_SIZE);
 
             ScrollPane scrollDiagramme = new ScrollPane(zoneDiagramme);
@@ -222,13 +229,13 @@ public class TabGanttProcesseursControleur implements Initializable {
         //Permet l'espacement necessaire pour aligner les etapes de temps
         //Avec la moitie de chaque espaces entre les colonnes
         Region espaceGauche = new Region();
-        espaceGauche.setMinWidth(LARGEUR_COLONNE_CPU);
-        espaceGauche.setPrefWidth(LARGEUR_COLONNE_CPU);
+        espaceGauche.setMinWidth(LONGUEUR_COLONNE_DEBUT);
+        espaceGauche.setPrefWidth(LONGUEUR_COLONNE_DEBUT);
         barreEtapes.getChildren().add(espaceGauche);
 
         //Decalement entre les etapes de temps
-        double pasColonne = LARGEUR_CASE + LARGEUR_SEPARATEUR;
-        double decalageVersEcart = -((LARGEUR_CASE / 2.0) + LARGEUR_SEPARATEUR);
+        double pasColonne = LONGUEUR_CASE + ECART_COLONNE;
+        double decalageVersEcart = -((LONGUEUR_CASE / 2.0) + ECART_COLONNE);
 
         for (int t = 0; t <= nbEtapes; t++) {
             Label lblTemps = new Label("" + t);
@@ -260,20 +267,19 @@ public class TabGanttProcesseursControleur implements Initializable {
         grid.setVgap(ECART_VERTICAL_LIGNES);
         grid.setAlignment(Pos.CENTER_LEFT);
 
-        grid.getColumnConstraints().add(new ColumnConstraints(LARGEUR_COLONNE_CPU));
-        for (int t = 0; t < nbPas; t++) {
-            grid.getColumnConstraints().add(new ColumnConstraints(LARGEUR_CASE));
-            if (t < nbPas - 1) {
-                grid.getColumnConstraints().add(new ColumnConstraints(LARGEUR_SEPARATEUR));
-            }
+        grid.getColumnConstraints().add(new ColumnConstraints(LONGUEUR_COLONNE_DEBUT));
+        for (int t = 0; t <= nbPas; t++) {
+            grid.getColumnConstraints().add(new ColumnConstraints(LONGUEUR_CASE));
+            grid.getColumnConstraints().add(new ColumnConstraints(ECART_COLONNE));
+            
         }
 
         int nbProcs = processeurs.size();
         for (int row = 0; row < nbProcs; row++) {
             String idProc = processeurs.get(row);
             Label lblProc = new Label(idProc);
-            lblProc.setMinWidth(LARGEUR_COLONNE_CPU);
-            lblProc.setPrefWidth(LARGEUR_COLONNE_CPU);
+            lblProc.setMinWidth(LONGUEUR_COLONNE_DEBUT);
+            lblProc.setPrefWidth(LONGUEUR_COLONNE_DEBUT);
             lblProc.setStyle("-fx-font-weight: bold; -fx-text-fill: #333333;");
             grid.add(lblProc, 0, row);
 
@@ -290,8 +296,8 @@ public class TabGanttProcesseursControleur implements Initializable {
                 ligne.setStrokeWidth(1.0);
 
                 StackPane conteneurLigne = new StackPane(ligne);
-                conteneurLigne.setMinWidth(LARGEUR_SEPARATEUR);
-                conteneurLigne.setPrefWidth(LARGEUR_SEPARATEUR);
+                conteneurLigne.setMinWidth(ECART_COLONNE);
+                conteneurLigne.setPrefWidth(ECART_COLONNE);
                 conteneurLigne.setAlignment(Pos.CENTER);
                 grid.add(conteneurLigne, 2 + (t * 2), 0);
                 GridPane.setRowSpan(conteneurLigne, nbProcs);
@@ -343,14 +349,14 @@ public class TabGanttProcesseursControleur implements Initializable {
             }
         }
 
-        double pasColonne = LARGEUR_CASE + LARGEUR_SEPARATEUR;
+        double pasColonne = LONGUEUR_CASE + ECART_COLONNE;
         for (Map.Entry<Integer, List<Line>> entry : traitsParInstant.entrySet()) {
             int t = entry.getKey();
             List<Line> traits = entry.getValue();
 
             double xCentre = (t == 0)
-                    ? LARGEUR_COLONNE_CPU - 2.0
-                    : LARGEUR_COLONNE_CPU + (t * pasColonne) - (LARGEUR_SEPARATEUR / 2.0);
+                    ? LONGUEUR_COLONNE_DEBUT - 2.0
+                    : LONGUEUR_COLONNE_DEBUT + (t * pasColonne) - (ECART_COLONNE / 2.0);
 
             int n = traits.size();
             for (int i = 0; i < n; i++) {
@@ -373,8 +379,8 @@ public class TabGanttProcesseursControleur implements Initializable {
      */
     private Pane creerCase(String idProcessusAlloue, int pasTemps) {
         Pane cellule = new Pane();
-        cellule.setPrefSize(LARGEUR_CASE, HAUTEUR_CASE);
-        cellule.setMinSize(LARGEUR_CASE, HAUTEUR_CASE);
+        cellule.setPrefSize(LONGUEUR_CASE, LARGEUR_CASE);
+        cellule.setMinSize(LONGUEUR_CASE, LARGEUR_CASE);
 
         if (idProcessusAlloue != null) {
             String couleurHex = couleursParProcessus.getOrDefault(idProcessusAlloue, "#4E79A7");
@@ -400,11 +406,11 @@ public class TabGanttProcesseursControleur implements Initializable {
      */
     private void afficherLegende() {
         String texte = "";
-        zoneLegende.setHgap(18);
-        zoneLegende.setVgap(8);
-        zoneLegende.setPadding(new Insets(10, 14, 10, 14));
-        zoneLegende.setMaxWidth(Double.MAX_VALUE);
-        zoneLegende.setStyle("-fx-background-color: #EAEAEA; -fx-background-radius: 4;");
+        this.zoneLegende.setHgap(18);
+        this.zoneLegende.setVgap(8);
+        this.zoneLegende.setPadding(new Insets(10, 14, 10, 14));
+        this.zoneLegende.setMaxWidth(Double.MAX_VALUE);
+        this.zoneLegende.setStyle("-fx-background-color: #EAEAEA; -fx-background-radius: 4;");
 
         for (Map.Entry<String, String> entry : couleursParProcessus.entrySet()) {
             String idProc = entry.getKey();

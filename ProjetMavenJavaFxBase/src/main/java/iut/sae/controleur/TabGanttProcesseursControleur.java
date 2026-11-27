@@ -38,14 +38,16 @@ import javafx.scene.shape.Line;
  * TabGanttProcesseursControleur
  * 
  * @Author Alexis Sudre Brito
- * Niveau de Vibe-Coding assez consequant...
+ * Controleur de la page qui genere les diagrammes de "Gantt"
+ * Pour chaque allocation de chaque algorithme
+ * Se structure avec l'ensemble des processeurs disponibles
  * 
- * @Version 1.9
+ * @Version 2.0
  */
 public class TabGanttProcesseursControleur implements Initializable {
 
     //Liste des couleurs associees aux processus
-    //Limitees a 10 pour le moment...
+    //10 au total
     private static final List<String> PALETTE_COULEURS = List.of(
             "#4E79A7", "#F28E2B", "#E15759", "#76B7B2",
             "#59A14F", "#EDC948", "#B07AA1", "#FF9DA7",
@@ -83,16 +85,13 @@ public class TabGanttProcesseursControleur implements Initializable {
         this.boiteConteneurElements.setMaxWidth(Double.MAX_VALUE);
         this.boiteConteneurElements.setFillWidth(true);
 
-        //Listener temporaire (esperons)
         EtatApplication.resultatsProperty().addListener((obs, ancien, nouveau) ->
                 lancerAffichageParProcesseurs(nouveau));
         lancerAffichageParProcesseurs(EtatApplication.getResultats());
     }
 
     /**
-     * Fonction "principale" du travail
-     * Devrait se faire lancer par le controleur de la page principale
-     * Cela pour chaque simulation de lancee
+     * Fonction "principale" de la classe
      * @param resultats resultats de la derniere simulation
      */
     public void lancerAffichageParProcesseurs(ResultatsSimulation resultats) {
